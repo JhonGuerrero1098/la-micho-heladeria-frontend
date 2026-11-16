@@ -192,7 +192,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                     idRol: idRol
                                 };
 
-                                fetch('https://localhost:7137/api/Usuarios/Registro', {
+                                fetch('https://la-micho-heladeria-backend.onrender.com/api/Usuarios/Registro', {
                                     method: 'POST',
                                     headers: { 'Content-Type': 'application/json' },
                                     body: JSON.stringify(nuevoUsuarioData)
@@ -266,7 +266,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let categoriasGlobal = [];
     function cargarCategoriasDatalist() {
-        fetch('https://localhost:7137/api/categorias')
+        fetch('https://la-micho-heladeria-backend.onrender.com/api/Usuarios/categorias')
             .then(res => res.json())
             .then(categorias => {
                 categoriasGlobal = categorias;
@@ -285,7 +285,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function cargarInventario() {
-        fetch('https://localhost:7137/api/productos')
+        fetch('https://la-micho-heladeria-backend.onrender.com/api/productos')
             .then(response => response.json())
             .then(productos => {
                 const contenedor = document.getElementById('contenedor-tabla');
@@ -364,7 +364,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         const idProducto = e.target.getAttribute('data-id');
 
                         if (confirm('¿Estás seguro de que deseas eliminar este producto del inventario?')) {
-                            fetch(`https://localhost:7137/api/productos/${idProducto}`, {
+                            fetch(`https://la-micho-heladeria-backend.onrender.com/api/productos/${idProducto}`, {
                                 method: 'DELETE'
                             })
                             .then(response => {
@@ -402,7 +402,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 return catEncontrada.id;
             } else {
                 try {
-                    const response = await fetch('https://localhost:7137/api/categorias', {
+                    const response = await fetch('https://la-micho-heladeria-backend.onrender.com/api/Usuarios/categorias', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ nombreCategoria: nombreCatTexto })
@@ -436,7 +436,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     activo: true
                 };
 
-                fetch('https://localhost:7137/api/productos', {
+                fetch('https://la-micho-heladeria-backend.onrender.com/api/productos', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(nuevoProductoData)
@@ -487,7 +487,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     activo: true
                 };
 
-                fetch(`https://localhost:7137/api/productos/${id}`, {
+                fetch(`https://la-micho-heladeria-backend.onrender.com/api/productos/${id}`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(productoActualizado)
@@ -557,7 +557,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let idsClientesEliminados = JSON.parse(localStorage.getItem('clientesEliminadosUI') || '[]');
 
     function cargarClientes() {
-        fetch('https://localhost:7137/api/clientes')
+        fetch('https://la-micho-heladeria-backend.onrender.com/api/Usuarios/clientes')
             .then(response => response.json())
             .then(clientes => {
                 // Filtramos para excluir permanentemente de la vista aquellos cuyo ID esté en la lista de eliminados
@@ -861,14 +861,14 @@ case 'pos':
     }
 
     function cargarDatosPOS() {
-        fetch('https://localhost:7137/api/productos')
+        fetch('https://la-micho-heladeria-backend.onrender.com/api/Usuarios/productos')
             .then(res => res.json())
             .then(data => {
                 productosGlobal = data;
                 renderizarDatalistProductos(productosGlobal);
             });
 
-        fetch('https://localhost:7137/api/clientes')
+        fetch('https://la-micho-heladeria-backend.onrender.com/api/Usuarios/clientes')
             .then(res => res.json())
             .then(data => {
                 clientesGlobal = data;
@@ -965,7 +965,7 @@ case 'pos':
 
             const nuevoCliente = { nombre, cedula, telefono, email, direccion };
 
-            fetch('https://localhost:7137/api/clientes', {
+            fetch('https://la-micho-heladeria-backend.onrender.com/api/Usuarios/clientes', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(nuevoCliente)
@@ -977,7 +977,7 @@ case 'pos':
                     throw new Error('Error al registrar el cliente.');
                 }
             })
-            .then(() => fetch('https://localhost:7137/api/clientes'))
+            .then(() => fetch('https://la-micho-heladeria-backend.onrender.com/api/Usuarios/clientes'))
             .then(res => res.json())
             .then(data => {
                 clientesGlobal = data;
@@ -1163,7 +1163,7 @@ case 'pos':
                 }))
             };
 
-            fetch('https://localhost:7137/api/ventas', {
+            fetch('https://la-micho-heladeria-backend.onrender.com/api/Usuarios/ventas', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(ventaData)
@@ -1230,7 +1230,7 @@ case 'pos':
     function cargarVentasDelDia() {
         const fechaLocal = new Date().toLocaleDateString('en-CA');
 
-        fetch(`https://localhost:7137/api/Ventas/PorFecha?fecha=${fechaLocal}`)
+        fetch(`https://la-micho-heladeria-backend.onrender.com/api/Usuarios/Ventas/PorFecha?fecha=${fechaLocal}`)
             .then(res => res.json())
             .then(ventas => {
                 const contenedor = document.getElementById('contenedor-desglose-metodos');
@@ -1450,7 +1450,7 @@ case 'pos':
     `;
 
     // 1. Producto Estrella General (Histórico)
-    fetch('https://localhost:7137/api/Ventas/ProductoMasVendido')
+    fetch('https://la-micho-heladeria-backend.onrender.com/api/Usuarios/Ventas/ProductoMasVendido')
         .then(res => res.json())
         .then(data => {
             const contenedor = document.getElementById('contenedor-producto-general');
@@ -1473,7 +1473,7 @@ case 'pos':
 
     // 2. Producto Estrella Diario y Top 5 por fecha
     function cargarEstrellaDiario(fechaStr = '') {
-        let url = 'https://localhost:7137/api/Ventas/ProductoMasVendidoDiario';
+        let url = 'https://la-micho-heladeria-backend.onrender.com/api/Usuarios/Ventas/ProductoMasVendidoDiario';
         if (fechaStr) {
             url += `?fecha=${fechaStr}`;
         }
@@ -1500,14 +1500,14 @@ case 'pos':
             });
 
         // Cargar el Top 5 de productos del día en formato de barras
-        let urlTop5 = 'https://localhost:7137/api/Ventas/TopProductosDiario'; // (O ajusta la ruta si tu endpoint del top 5 diario tiene otro nombre en C#)
+        let urlTop5 = 'https://la-micho-heladeria-backend.onrender.com/api/Usuarios/Ventas/TopProductosDiario'; // (O ajusta la ruta si tu endpoint del top 5 diario tiene otro nombre en C#)
         if (fechaStr) {
             urlTop5 += `?fecha=${fechaStr}`;
         }
 
         // Nota: Si tu backend usa el endpoint general de ventas por fecha para calcular el top 5 en el cliente, 
         // aquí lo calculamos directamente de forma limpia consumiendo las ventas de ese día:
-        fetch(`https://localhost:7137/api/Ventas/PorFecha?fecha=${fechaStr}`)
+        fetch(`https://la-micho-heladeria-backend.onrender.com/api/Usuarios/Ventas/PorFecha?fecha=${fechaStr}`)
             .then(res => res.json())
             .then(ventas => {
                 const contenedorTop5 = document.getElementById('contenedor-top5-diario');
