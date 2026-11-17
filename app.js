@@ -55,7 +55,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const passwordIngresada = document.getElementById('input-pass-bloqueo').value;
 
             // Validar credenciales contra la API de login
-            fetch('https://localhost:7137/api/Usuarios/Login', {
+            fetch('https://la-micho-heladeria-backend.onrender.com/api/Usuarios/Login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email: usuarioActual.email, contrasena: passwordIngresada })
@@ -129,7 +129,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     let contenidoDashboard = `
                     <div class="card" style="margin-bottom: 20px;">
                     <h3>Bienvenido ${usuarioActual.nombreCompleto || 'Usuario'}</h3>
-                    <p>Selecciona una opcion del menu lateral para iniciar.</p>
+                    <p>Selecciona una opcion del menu para iniciar.</p>
                 </div>
             `;
             // Si el usuario es Superusuario (3) o Administrador (1), le mostramos el módulo para crear usuarios
@@ -698,7 +698,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     direccion: document.getElementById('direccion-cliente').value
                 };
 
-                fetch('https://localhost:7137/api/clientes', {
+                fetch('https://la-micho-heladeria-backend.onrender.com/api/clientes', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(nuevoCliente)
@@ -742,7 +742,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     direccion: document.getElementById('edit-cliente-direccion').value
                 };
 
-                fetch(`https://localhost:7137/api/clientes/${id}`, {
+                fetch(`https://la-micho-heladeria-backend.onrender.com/api/clientes/${id}`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(clienteActualizado)
