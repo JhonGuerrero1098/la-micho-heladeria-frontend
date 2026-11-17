@@ -196,8 +196,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     setTimeout(() => {
                         const formCrearUsuario = document.getElementById('form-crear-usuario-admin');
                         if (formCrearUsuario) {
+                            const btnCrearUsuario = formCrearUsuario.querySelector('button[type="submit"]');
+                            // Bandera para evitar doble envío mientras la petición está en curso
+                            let isSubmitting = false;
+
                             formCrearUsuario.addEventListener('submit', (e) => {
                                 e.preventDefault();
+                                if (isSubmitting) return;
 
                                 const nombre = document.getElementById('nuevo-nombre').value.trim();
                                 const email = document.getElementById('nuevo-correo').value.trim();
@@ -224,6 +229,11 @@ document.addEventListener('DOMContentLoaded', () => {
                                     idRol: idRol
                                 };
 
+                                isSubmitting = true;
+                                btnCrearUsuario.textContent = 'Creando usuario...';
+                                btnCrearUsuario.disabled = true;
+                                btnCrearUsuario.style.opacity = '0.7';
+
                                 fetch('https://la-micho-heladeria-backend.onrender.com/api/Usuarios/Registro', {
                                     method: 'POST',
                                     headers: { 'Content-Type': 'application/json' },
@@ -231,14 +241,24 @@ document.addEventListener('DOMContentLoaded', () => {
                                 })
                                     .then(async res => {
                                         if (res.ok) {
-                                            alert('¡Usuario creado con éxito!');
+                                            // Limpiar el formulario antes del aviso para no reenviar el mismo correo
                                             formCrearUsuario.reset();
+                                            alert('¡Usuario creado con éxito!');
                                         } else {
                                             const errorText = await res.text();
                                             alert('Error al crear usuario: ' + errorText);
                                         }
                                     })
-                                    .catch(err => console.error('Error de red:', err));
+                                    .catch(err => {
+                                        console.error('Error de red:', err);
+                                        alert('Error de conexión con el servidor al crear el usuario.');
+                                    })
+                                    .finally(() => {
+                                        isSubmitting = false;
+                                        btnCrearUsuario.textContent = 'Crear Usuario';
+                                        btnCrearUsuario.disabled = false;
+                                        btnCrearUsuario.style.opacity = '1';
+                                    });
                             });
                         }
                     }, 100);
