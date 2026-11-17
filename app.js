@@ -286,7 +286,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let categoriasGlobal = [];
     function cargarCategoriasDatalist() {
-        fetch('https://la-micho-heladeria-backend.onrender.com/api/Usuarios/categorias')
+        fetch('https://la-micho-heladeria-backend.onrender.com/api/categorias')
             .then(res => res.json())
             .then(categorias => {
                 categoriasGlobal = categorias;
