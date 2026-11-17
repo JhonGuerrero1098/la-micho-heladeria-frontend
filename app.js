@@ -1,10 +1,22 @@
+// Solo se acepta la sesión si la página se abre justo después de un login exitoso
+// (login.html deja una bandera de un solo uso en sessionStorage).
+// Cualquier otra carga (URL directa, recarga, pestaña nueva) limpia la sesión previa.
+const vieneDeLogin = sessionStorage.getItem('loginReciente') === 'true';
+sessionStorage.removeItem('loginReciente');
+if (!vieneDeLogin) {
+    localStorage.removeItem('usuarioLogueado');
+}
+
 const usuarioActual = JSON.parse(localStorage.getItem('usuarioLogueado'));
 if (!usuarioActual) {
-    // Si no hay sesión activa, redirigir automáticamente al login
-    window.location.href = 'login.html';
+    // Sin sesión válida: redirigir de inmediato al login (replace evita volver con "Atrás")
+    window.location.replace('login.html');
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+    // Si se está redirigiendo al login, no inicializar el dashboard
+    if (!usuarioActual) return;
+
     const navLinks = document.querySelectorAll('.nav-links a');
     const sectionTitle = document.getElementById('section-title');
     const contentBody = document.querySelector('.content-body');
@@ -84,23 +96,23 @@ document.addEventListener('DOMContentLoaded', () => {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email: usuarioActual.email, contrasena: passwordIngresada })
             })
-            .then(async res => {
-                if (res.ok) {
-                    document.getElementById('modal-bloqueo-inactividad').remove();
-                    reiniciarTemporizadorInactividad();
-                } else {
-                    alert('Contraseña incorrecta. Inténtalo de nuevo.');
+                .then(async res => {
+                    if (res.ok) {
+                        document.getElementById('modal-bloqueo-inactividad').remove();
+                        reiniciarTemporizadorInactividad();
+                    } else {
+                        alert('Contraseña incorrecta. Inténtalo de nuevo.');
+                        btnSubmit.textContent = 'Desbloquear';
+                        btnSubmit.disabled = false;
+                        btnSubmit.style.opacity = '1';
+                    }
+                })
+                .catch(() => {
+                    alert('Error de conexión con el servidor al verificar credenciales.');
                     btnSubmit.textContent = 'Desbloquear';
                     btnSubmit.disabled = false;
                     btnSubmit.style.opacity = '1';
-                }
-            })
-            .catch(() => {
-                alert('Error de conexión con el servidor al verificar credenciales.');
-                btnSubmit.textContent = 'Desbloquear';
-                btnSubmit.disabled = false;
-                btnSubmit.style.opacity = '1';
-            });
+                });
         });
 
         document.getElementById('btn-forzar-salir').addEventListener('click', () => {
@@ -124,7 +136,7 @@ document.addEventListener('DOMContentLoaded', () => {
         navLinks.forEach(link => {
             const seccion = link.getAttribute('data-section');
             if (seccion === 'dashboard' || seccion === 'clientes' || seccion === 'producto-mas-vendido') {
-                link.parentElement.style.display = 'none'; 
+                link.parentElement.style.display = 'none';
             }
         });
     }
@@ -144,7 +156,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Cambiar el título superior y el contenido según la opción
             switch (section) {
-               case 'Inicio':
+                case 'Inicio':
                     sectionTitle.textContent = '/ Inicio /';
                     let contenidoDashboard = `
                     <div class="card" style="margin-bottom: 20px;">
@@ -152,14 +164,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     <p>Selecciona una opcion del menu para iniciar.</p>
                 </div>
             `;
-            // Si el usuario es Superusuario (3) o Administrador (1), le mostramos el módulo para crear usuarios
-            if (usuarioActual.idRol === 3 || usuarioActual.idRol === 1){
-                const opcionesRolHTML = usuarioActual.idRol === 3
-                ? `<option value="1">Administrador / Dueño del local</option>
+                    // Si el usuario es Superusuario (3) o Administrador (1), le mostramos el módulo para crear usuarios
+                    if (usuarioActual.idRol === 3 || usuarioActual.idRol === 1) {
+                        const opcionesRolHTML = usuarioActual.idRol === 3
+                            ? `<option value="1">Administrador / Dueño del local</option>
                    <option value="2">Cajero</option>`
-                :    `<option value="2">Cajero</option>`; 
-                
-              contenidoDashboard += `
+                            : `<option value="2">Cajero</option>`;
+
+                        contenidoDashboard += `
                 <div class="card" style="max-width: 600px; margin: 0 auto;">
                     <h3 style="color: #f8fafc; margin-bottom: 10px;">Crear Nuevo Usuario</h3>
                     <p style="color: #94a3b8; font-size: 0.9rem; margin-bottom: 15px; line-height: 1.5;">
@@ -178,8 +190,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     </form>
                 </div>
                 `;
-            }
-            contentBody.innerHTML = contenidoDashboard;
+                    }
+                    contentBody.innerHTML = contenidoDashboard;
 
                     setTimeout(() => {
                         const formCrearUsuario = document.getElementById('form-crear-usuario-admin');
@@ -217,24 +229,24 @@ document.addEventListener('DOMContentLoaded', () => {
                                     headers: { 'Content-Type': 'application/json' },
                                     body: JSON.stringify(nuevoUsuarioData)
                                 })
-                                .then(async res => {
-                                    if (res.ok) {
-                                        alert('¡Usuario creado con éxito!');
-                                        formCrearUsuario.reset();
-                                    } else {
-                                        const errorText = await res.text();
-                                        alert('Error al crear usuario: ' + errorText);
-                                    }
-                                })
-                                .catch(err => console.error('Error de red:', err));
+                                    .then(async res => {
+                                        if (res.ok) {
+                                            alert('¡Usuario creado con éxito!');
+                                            formCrearUsuario.reset();
+                                        } else {
+                                            const errorText = await res.text();
+                                            alert('Error al crear usuario: ' + errorText);
+                                        }
+                                    })
+                                    .catch(err => console.error('Error de red:', err));
                             });
                         }
                     }, 100);
                     break;
 
-              case 'inventario':
-    sectionTitle.textContent = 'Inventario de productos';
-    contentBody.innerHTML = `
+                case 'inventario':
+                    sectionTitle.textContent = 'Inventario de productos';
+                    contentBody.innerHTML = `
         <!-- FORMULARIO PARA AGREGAR NUEVO PRODUCTO -->
         <div class="card" style="margin-bottom: 20px;">
             <h3 style="color: #f8fafc; margin-bottom: 10px;">Registrar Nuevo Producto</h3>
@@ -284,38 +296,38 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
     `;
 
-    let categoriasGlobal = [];
-    function cargarCategoriasDatalist() {
-        fetch('https://la-micho-heladeria-backend.onrender.com/api/categorias')
-            .then(res => res.json())
-            .then(categorias => {
-                categoriasGlobal = categorias;
-                const datalist = document.getElementById('lista-categorias-sugeridas');
-                if (datalist) {
-                    datalist.innerHTML = '';
-                    categorias.forEach(cat => {
-                        const nombreCat = cat.nombreCategoria || cat.nombre || '';
-                        if (nombreCat) {
-                            datalist.innerHTML += `<option value="${nombreCat}">`;
-                        }
-                    });
-                }
-            })
-            .catch(err => console.error('Error al cargar categorías:', err));
-    }
+                    let categoriasGlobal = [];
+                    function cargarCategoriasDatalist() {
+                        fetch('https://la-micho-heladeria-backend.onrender.com/api/categorias')
+                            .then(res => res.json())
+                            .then(categorias => {
+                                categoriasGlobal = categorias;
+                                const datalist = document.getElementById('lista-categorias-sugeridas');
+                                if (datalist) {
+                                    datalist.innerHTML = '';
+                                    categorias.forEach(cat => {
+                                        const nombreCat = cat.nombreCategoria || cat.nombre || '';
+                                        if (nombreCat) {
+                                            datalist.innerHTML += `<option value="${nombreCat}">`;
+                                        }
+                                    });
+                                }
+                            })
+                            .catch(err => console.error('Error al cargar categorías:', err));
+                    }
 
-    function cargarInventario() {
-        fetch('https://la-micho-heladeria-backend.onrender.com/api/productos')
-            .then(response => response.json())
-            .then(productos => {
-                const contenedor = document.getElementById('contenedor-tabla');
+                    function cargarInventario() {
+                        fetch('https://la-micho-heladeria-backend.onrender.com/api/productos')
+                            .then(response => response.json())
+                            .then(productos => {
+                                const contenedor = document.getElementById('contenedor-tabla');
 
-                if (productos.length === 0) {
-                    contenedor.innerHTML = '<p style="padding: 15px; text-align: center; color: #94a3b8;">No hay productos registrados.</p>';
-                    return;
-                }
+                                if (productos.length === 0) {
+                                    contenedor.innerHTML = '<p style="padding: 15px; text-align: center; color: #94a3b8;">No hay productos registrados.</p>';
+                                    return;
+                                }
 
-                let tablaHTML = `
+                                let tablaHTML = `
                     <div style="overflow-x: auto;">
                         <table style="width:100%; border-collapse: collapse; margin-top:5px; text-align: left; color: #f3f4f6;">
                             <thead>
@@ -331,11 +343,11 @@ document.addEventListener('DOMContentLoaded', () => {
                             <tbody>
                 `;
 
-                productos.forEach(prod => {
-                    const estiloStock = prod.stock <= 10 ? 'color: #f87171; font-weight: bold;' : 'color: #f3f4f6;';
-                    const nombreCategoria = prod.idCategoriaNavigation ? (prod.idCategoriaNavigation.nombreCategoria || prod.idCategoriaNavigation.nombre) : 'General';
+                                productos.forEach(prod => {
+                                    const estiloStock = prod.stock <= 10 ? 'color: #f87171; font-weight: bold;' : 'color: #f3f4f6;';
+                                    const nombreCategoria = prod.idCategoriaNavigation ? (prod.idCategoriaNavigation.nombreCategoria || prod.idCategoriaNavigation.nombre) : 'General';
 
-                    tablaHTML += `
+                                    tablaHTML += `
                         <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.05); transition: background 0.2s;">
                             <td style="padding: 12px; color: #94a3b8;">${prod.id}</td>
                             <td style="padding: 12px; font-weight: 500;">${prod.nombre}</td>
@@ -350,188 +362,188 @@ document.addEventListener('DOMContentLoaded', () => {
                             </td>
                         </tr>
                     `;
-                });
+                                });
 
-                tablaHTML += `</tbody></table></div>`;
-                contenedor.innerHTML = tablaHTML;
+                                tablaHTML += `</tbody></table></div>`;
+                                contenedor.innerHTML = tablaHTML;
 
-                // Evento para abrir el formulario de edición
-                document.querySelectorAll('.btn-editar').forEach(btn => {
-                    btn.addEventListener('click', (e) => {
-                        const id = e.target.getAttribute('data-id');
-                        const nombre = e.target.getAttribute('data-nombre');
-                        const precio = e.target.getAttribute('data-precio');
-                        const stockactual = e.target.getAttribute('data-stock');
-                        const catNombre = e.target.getAttribute('data-catanombre');
-                        const descripcion = e.target.getAttribute('data-descripcion');
+                                // Evento para abrir el formulario de edición
+                                document.querySelectorAll('.btn-editar').forEach(btn => {
+                                    btn.addEventListener('click', (e) => {
+                                        const id = e.target.getAttribute('data-id');
+                                        const nombre = e.target.getAttribute('data-nombre');
+                                        const precio = e.target.getAttribute('data-precio');
+                                        const stockactual = e.target.getAttribute('data-stock');
+                                        const catNombre = e.target.getAttribute('data-catanombre');
+                                        const descripcion = e.target.getAttribute('data-descripcion');
 
-                        document.getElementById('card-formulario-producto').style.display = 'block';
-                        document.getElementById('edit-id').value = id;
-                        document.getElementById('edit-stock-original').value = stockactual;
-                        document.getElementById('edit-nombre').value = nombre;
-                        document.getElementById('edit-precio').value = precio;
-                        document.getElementById('edit-stock').value = '';
-                        document.getElementById('edit-categoria').value = catNombre;
-                        document.getElementById('edit-descripcion').value = descripcion;
+                                        document.getElementById('card-formulario-producto').style.display = 'block';
+                                        document.getElementById('edit-id').value = id;
+                                        document.getElementById('edit-stock-original').value = stockactual;
+                                        document.getElementById('edit-nombre').value = nombre;
+                                        document.getElementById('edit-precio').value = precio;
+                                        document.getElementById('edit-stock').value = '';
+                                        document.getElementById('edit-categoria').value = catNombre;
+                                        document.getElementById('edit-descripcion').value = descripcion;
 
-                        window.scrollTo({ top: 0, behavior: 'smooth' });
-                    });
-                });
+                                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                                    });
+                                });
 
-                // Evento para Eliminar producto de la base de datos
-                document.querySelectorAll('.btn-eliminar-producto').forEach(btn => {
-                    btn.addEventListener('click', (e) => {
-                        const idProducto = e.target.getAttribute('data-id');
+                                // Evento para Eliminar producto de la base de datos
+                                document.querySelectorAll('.btn-eliminar-producto').forEach(btn => {
+                                    btn.addEventListener('click', (e) => {
+                                        const idProducto = e.target.getAttribute('data-id');
 
-                        if (confirm('¿Estás seguro de que deseas eliminar este producto del inventario?')) {
-                            fetch(`https://la-micho-heladeria-backend.onrender.com/api/productos/${idProducto}`, {
-                                method: 'DELETE'
+                                        if (confirm('¿Estás seguro de que deseas eliminar este producto del inventario?')) {
+                                            fetch(`https://la-micho-heladeria-backend.onrender.com/api/productos/${idProducto}`, {
+                                                method: 'DELETE'
+                                            })
+                                                .then(response => {
+                                                    if (response.ok) {
+                                                        alert('¡Producto eliminado con éxito!');
+                                                        cargarInventario();
+                                                    } else {
+                                                        alert('No se pudo eliminar el producto (puede estar asociado a ventas registradas).');
+                                                    }
+                                                })
+                                                .catch(err => console.error('Error en DELETE Producto:', err));
+                                        }
+                                    });
+                                });
                             })
-                            .then(response => {
-                                if (response.ok) {
-                                    alert('¡Producto eliminado con éxito!');
-                                    cargarInventario();
-                                } else {
-                                    alert('No se pudo eliminar el producto (puede estar asociado a ventas registradas).');
+                            .catch(error => {
+                                console.error('Error al cargar los productos:', error);
+                                document.getElementById('contenedor-tabla').innerHTML = '<p style="padding: 15px; color: #f87171; text-align: center;">Error al cargar los productos.</p>';
+                            });
+                    }
+
+                    cargarCategoriasDatalist();
+                    cargarInventario();
+
+                    setTimeout(() => {
+                        // Función auxiliar para obtener el ID de la categoría por texto (o crearla automáticamente si no existe)
+                        async function obtenerOidCrearCategoria(nombreCatTexto) {
+                            if (!nombreCatTexto) return null;
+                            const catEncontrada = categoriasGlobal.find(c => {
+                                const n = c.nombreCategoria || c.nombre || '';
+                                return n.toLowerCase() === nombreCatTexto.toLowerCase();
+                            });
+
+                            if (catEncontrada) {
+                                return catEncontrada.id;
+                            } else {
+                                try {
+                                    const response = await fetch('https://la-micho-heladeria-backend.onrender.com/api/Usuarios/categorias', {
+                                        method: 'POST',
+                                        headers: { 'Content-Type': 'application/json' },
+                                        body: JSON.stringify({ nombreCategoria: nombreCatTexto })
+                                    });
+                                    if (response.ok) {
+                                        const nuevaCat = await response.json();
+                                        categoriasGlobal.push(nuevaCat);
+                                        return nuevaCat.id;
+                                    }
+                                } catch (e) {
+                                    console.error('Error al crear categoría automáticamente:', e);
                                 }
-                            })
-                            .catch(err => console.error('Error en DELETE Producto:', err));
+                            }
+                            return null;
                         }
-                    });
-                });
-            })
-            .catch(error => {
-                console.error('Error al cargar los productos:', error);
-                document.getElementById('contenedor-tabla').innerHTML = '<p style="padding: 15px; color: #f87171; text-align: center;">Error al cargar los productos.</p>';
-            });
-    }
 
-    cargarCategoriasDatalist();
-    cargarInventario();
+                        // Lógica para Crear Nuevo Producto
+                        const formCrearProd = document.getElementById('form-crear-producto-inventario');
+                        if (formCrearProd) {
+                            formCrearProd.addEventListener('submit', async (e) => {
+                                e.preventDefault();
+                                const textoCat = document.getElementById('nuevo-prod-categoria').value.trim();
+                                const idCat = await obtenerOidCrearCategoria(textoCat);
 
-    setTimeout(() => {
-        // Función auxiliar para obtener el ID de la categoría por texto (o crearla automáticamente si no existe)
-        async function obtenerOidCrearCategoria(nombreCatTexto) {
-            if (!nombreCatTexto) return null;
-            const catEncontrada = categoriasGlobal.find(c => {
-                const n = c.nombreCategoria || c.nombre || '';
-                return n.toLowerCase() === nombreCatTexto.toLowerCase();
-            });
+                                const nuevoProductoData = {
+                                    nombre: document.getElementById('nuevo-prod-nombre').value.trim(),
+                                    precio: parseFloat(document.getElementById('nuevo-prod-precio').value),
+                                    stock: parseInt(document.getElementById('nuevo-prod-stock').value),
+                                    idCategoria: idCat,
+                                    descripcion: document.getElementById('nuevo-prod-descripcion').value.trim(),
+                                    activo: true
+                                };
 
-            if (catEncontrada) {
-                return catEncontrada.id;
-            } else {
-                try {
-                    const response = await fetch('https://la-micho-heladeria-backend.onrender.com/api/Usuarios/categorias', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ nombreCategoria: nombreCatTexto })
-                    });
-                    if (response.ok) {
-                        const nuevaCat = await response.json();
-                        categoriasGlobal.push(nuevaCat);
-                        return nuevaCat.id;
-                    }
-                } catch (e) {
-                    console.error('Error al crear categoría automáticamente:', e);
-                }
-            }
-            return null;
-        }
+                                fetch('https://la-micho-heladeria-backend.onrender.com/api/productos', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify(nuevoProductoData)
+                                })
+                                    .then(response => {
+                                        if (response.ok) {
+                                            alert('¡Producto creado y registrado con éxito en el inventario!');
+                                            formCrearProd.reset();
+                                            cargarCategoriasDatalist();
+                                            cargarInventario();
+                                        } else {
+                                            response.text().then(err => alert('Error al crear el producto: ' + err));
+                                        }
+                                    })
+                                    .catch(err => console.error('Error en POST Producto:', err));
+                            });
+                        }
 
-        // Lógica para Crear Nuevo Producto
-        const formCrearProd = document.getElementById('form-crear-producto-inventario');
-        if (formCrearProd) {
-            formCrearProd.addEventListener('submit', async (e) => {
-                e.preventDefault();
-                const textoCat = document.getElementById('nuevo-prod-categoria').value.trim();
-                const idCat = await obtenerOidCrearCategoria(textoCat);
+                        // Lógica para Editar / Actualizar Producto
+                        const formEditar = document.getElementById('form-editar-producto');
+                        const btnCancelar = document.getElementById('btn-cancelar-edit');
 
-                const nuevoProductoData = {
-                    nombre: document.getElementById('nuevo-prod-nombre').value.trim(),
-                    precio: parseFloat(document.getElementById('nuevo-prod-precio').value),
-                    stock: parseInt(document.getElementById('nuevo-prod-stock').value),
-                    idCategoria: idCat,
-                    descripcion: document.getElementById('nuevo-prod-descripcion').value.trim(),
-                    activo: true
-                };
+                        if (btnCancelar) {
+                            btnCancelar.addEventListener('click', () => {
+                                document.getElementById('card-formulario-producto').style.display = 'none';
+                                formEditar.reset();
+                            });
+                        }
 
-                fetch('https://la-micho-heladeria-backend.onrender.com/api/productos', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(nuevoProductoData)
-                })
-                .then(response => {
-                    if (response.ok) {
-                        alert('¡Producto creado y registrado con éxito en el inventario!');
-                        formCrearProd.reset();
-                        cargarCategoriasDatalist();
-                        cargarInventario();
-                    } else {
-                        response.text().then(err => alert('Error al crear el producto: ' + err));
-                    }
-                })
-                .catch(err => console.error('Error en POST Producto:', err));
-            });
-        }
+                        if (formEditar) {
+                            formEditar.addEventListener('submit', async (e) => {
+                                e.preventDefault();
+                                const id = document.getElementById('edit-id').value;
+                                const stockOriginal = parseInt(document.getElementById('edit-stock-original').value) || 0;
+                                const cantidadIngresada = parseInt(document.getElementById('edit-stock').value) || 0;
+                                const stockFinal = stockOriginal + cantidadIngresada;
 
-        // Lógica para Editar / Actualizar Producto
-        const formEditar = document.getElementById('form-editar-producto');
-        const btnCancelar = document.getElementById('btn-cancelar-edit');
+                                const textoCat = document.getElementById('edit-categoria').value.trim();
+                                const idCat = await obtenerOidCrearCategoria(textoCat);
 
-        if (btnCancelar) {
-            btnCancelar.addEventListener('click', () => {
-                document.getElementById('card-formulario-producto').style.display = 'none';
-                formEditar.reset();
-            });
-        }
+                                const productoActualizado = {
+                                    id: parseInt(id),
+                                    nombre: document.getElementById('edit-nombre').value,
+                                    precio: parseFloat(document.getElementById('edit-precio').value),
+                                    stock: stockFinal,
+                                    idCategoria: idCat,
+                                    descripcion: document.getElementById('edit-descripcion').value,
+                                    activo: true
+                                };
 
-        if (formEditar) {
-            formEditar.addEventListener('submit', async (e) => {
-                e.preventDefault();
-                const id = document.getElementById('edit-id').value;
-                const stockOriginal = parseInt(document.getElementById('edit-stock-original').value) || 0;
-                const cantidadIngresada = parseInt(document.getElementById('edit-stock').value) || 0;
-                const stockFinal = stockOriginal + cantidadIngresada;
+                                fetch(`https://la-micho-heladeria-backend.onrender.com/api/productos/${id}`, {
+                                    method: 'PUT',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify(productoActualizado)
+                                })
+                                    .then(response => {
+                                        if (response.ok) {
+                                            alert(`Producto actualizado con éxito (Anterior: ${stockOriginal} + Agregados: ${cantidadIngresada} = Total: ${stockFinal})`);
+                                            document.getElementById('card-formulario-producto').style.display = 'none';
+                                            formEditar.reset();
+                                            cargarCategoriasDatalist();
+                                            cargarInventario();
+                                        } else {
+                                            response.text().then(err => alert('Error al actualizar producto: ' + err));
+                                        }
+                                    })
+                                    .catch(err => console.error('Error en PUT Producto:', err));
+                            });
+                        }
+                    }, 100);
+                    break;
 
-                const textoCat = document.getElementById('edit-categoria').value.trim();
-                const idCat = await obtenerOidCrearCategoria(textoCat);
-
-                const productoActualizado = {
-                    id: parseInt(id),
-                    nombre: document.getElementById('edit-nombre').value,
-                    precio: parseFloat(document.getElementById('edit-precio').value),
-                    stock: stockFinal,
-                    idCategoria: idCat,
-                    descripcion: document.getElementById('edit-descripcion').value,
-                    activo: true
-                };
-
-                fetch(`https://la-micho-heladeria-backend.onrender.com/api/productos/${id}`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(productoActualizado)
-                })
-                .then(response => {
-                    if (response.ok) {
-                        alert(`Producto actualizado con éxito (Anterior: ${stockOriginal} + Agregados: ${cantidadIngresada} = Total: ${stockFinal})`);
-                        document.getElementById('card-formulario-producto').style.display = 'none';
-                        formEditar.reset();
-                        cargarCategoriasDatalist();
-                        cargarInventario();
-                    } else {
-                        response.text().then(err => alert('Error al actualizar producto: ' + err));
-                    }
-                })
-                .catch(err => console.error('Error en PUT Producto:', err));
-            });
-        }
-    }, 100);
-    break;
-
-        case 'clientes':
-    sectionTitle.textContent = 'Gestión de Clientes';
-    contentBody.innerHTML = `
+                case 'clientes':
+                    sectionTitle.textContent = 'Gestión de Clientes';
+                    contentBody.innerHTML = `
         <!-- FORMULARIO DESPLEGABLE (ACORDEÓN) PARA EDITAR CLIENTE -->
         <div class="card" id="card-formulario-cliente" style="margin-bottom: 20px; display: none; background-color: #0f172a; border: 1px solid rgba(56, 189, 248, 0.3);">
             <h3 id="titulo-form-clientes" style="color: #f8fafc; margin-bottom: 10px;">Editar Cliente</h3>
@@ -572,33 +584,33 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
     `;
 
-    let listaClientesGlobal = [];
-    // Conjunto para almacenar los IDs de los clientes eliminados de la vista principal en esta sesión
-    let idsClientesEliminados = JSON.parse(localStorage.getItem('clientesEliminadosUI') || '[]');
+                    let listaClientesGlobal = [];
+                    // Conjunto para almacenar los IDs de los clientes eliminados de la vista principal en esta sesión
+                    let idsClientesEliminados = JSON.parse(localStorage.getItem('clientesEliminadosUI') || '[]');
 
-    function cargarClientes() {
-        fetch('https://la-micho-heladeria-backend.onrender.com/api/Usuarios/clientes')
-            .then(response => response.json())
-            .then(clientes => {
-                // Filtramos para excluir permanentemente de la vista aquellos cuyo ID esté en la lista de eliminados
-                listaClientesGlobal = clientes.filter(c => !idsClientesEliminados.includes(c.id));
-                renderizarTablaClientes(listaClientesGlobal);
-            })
-            .catch(error => {
-                console.error('Error al cargar los clientes:', error);
-                document.getElementById('contenedor-tabla-clientes').innerHTML = '<p style="padding: 15px; color: #f87171; text-align: center;">Error al cargar los clientes.</p>';
-            });
-    }
+                    function cargarClientes() {
+                        fetch('https://la-micho-heladeria-backend.onrender.com/api/Usuarios/clientes')
+                            .then(response => response.json())
+                            .then(clientes => {
+                                // Filtramos para excluir permanentemente de la vista aquellos cuyo ID esté en la lista de eliminados
+                                listaClientesGlobal = clientes.filter(c => !idsClientesEliminados.includes(c.id));
+                                renderizarTablaClientes(listaClientesGlobal);
+                            })
+                            .catch(error => {
+                                console.error('Error al cargar los clientes:', error);
+                                document.getElementById('contenedor-tabla-clientes').innerHTML = '<p style="padding: 15px; color: #f87171; text-align: center;">Error al cargar los clientes.</p>';
+                            });
+                    }
 
-    function renderizarTablaClientes(clientesAMostrar) {
-        const contenedor = document.getElementById('contenedor-tabla-clientes');
+                    function renderizarTablaClientes(clientesAMostrar) {
+                        const contenedor = document.getElementById('contenedor-tabla-clientes');
 
-        if (clientesAMostrar.length === 0) {
-            contenedor.innerHTML = '<p style="padding: 15px; text-align: center; color: #94a3b8;">No hay clientes para mostrar.</p>';
-            return;
-        }
+                        if (clientesAMostrar.length === 0) {
+                            contenedor.innerHTML = '<p style="padding: 15px; text-align: center; color: #94a3b8;">No hay clientes para mostrar.</p>';
+                            return;
+                        }
 
-        let tablaHTML = `
+                        let tablaHTML = `
             <div style="overflow-x: auto;">
                 <table style="width:100%; border-collapse: collapse; margin-top:5px; text-align: left; color: #f3f4f6;">
                     <thead>
@@ -614,8 +626,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     <tbody>
         `;
 
-        clientesAMostrar.forEach(cli => {
-            tablaHTML += `
+                        clientesAMostrar.forEach(cli => {
+                            tablaHTML += `
                 <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.05); transition: background 0.2s;">
                     <td style="padding: 12px; color: #94a3b8;">${cli.id}</td>
                     <td style="padding: 12px;">${cli.cedula}</td>
@@ -630,163 +642,163 @@ document.addEventListener('DOMContentLoaded', () => {
                     </td>
                 </tr>
             `;
-        });
+                        });
 
-        tablaHTML += `</tbody></table></div>`;
-        contenedor.innerHTML = tablaHTML;
+                        tablaHTML += `</tbody></table></div>`;
+                        contenedor.innerHTML = tablaHTML;
 
-        // Evento para Editar (Desplegar acordeón)
-        document.querySelectorAll('.btn-editar-cliente').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const id = e.target.getAttribute('data-id');
-                const cedula = e.target.getAttribute('data-cedula');
-                const nombre = e.target.getAttribute('data-nombre');
-                const telefono = e.target.getAttribute('data-telefono');
-                const email = e.target.getAttribute('data-email');
-                const direccion = e.target.getAttribute('data-direccion');
+                        // Evento para Editar (Desplegar acordeón)
+                        document.querySelectorAll('.btn-editar-cliente').forEach(btn => {
+                            btn.addEventListener('click', (e) => {
+                                const id = e.target.getAttribute('data-id');
+                                const cedula = e.target.getAttribute('data-cedula');
+                                const nombre = e.target.getAttribute('data-nombre');
+                                const telefono = e.target.getAttribute('data-telefono');
+                                const email = e.target.getAttribute('data-email');
+                                const direccion = e.target.getAttribute('data-direccion');
 
-                document.getElementById('card-formulario-cliente').style.display = 'block';
-                document.getElementById('edit-cliente-id').value = id;
-                document.getElementById('edit-cliente-cedula').value = cedula;
-                document.getElementById('edit-cliente-nombre').value = nombre;
-                document.getElementById('edit-cliente-telefono').value = telefono;
-                document.getElementById('edit-cliente-email').value = email;
-                document.getElementById('edit-cliente-direccion').value = direccion;
+                                document.getElementById('card-formulario-cliente').style.display = 'block';
+                                document.getElementById('edit-cliente-id').value = id;
+                                document.getElementById('edit-cliente-cedula').value = cedula;
+                                document.getElementById('edit-cliente-nombre').value = nombre;
+                                document.getElementById('edit-cliente-telefono').value = telefono;
+                                document.getElementById('edit-cliente-email').value = email;
+                                document.getElementById('edit-cliente-direccion').value = direccion;
 
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-            });
-        });
+                                window.scrollTo({ top: 0, behavior: 'smooth' });
+                            });
+                        });
 
-        // Evento para Eliminar de la lista principal (permanente en la vista, intacto en la base de datos)
-        document.querySelectorAll('.btn-eliminar-cliente').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const idCliente = parseInt(e.target.getAttribute('data-id'));
-                
-                if (confirm('¿Estás seguro de que deseas eliminar este cliente de la lista? (Permanecerá guardado en la base de datos por seguridad de las ventas).')) {
-                    if (!idsClientesEliminados.includes(idCliente)) {
-                        idsClientesEliminados.push(idCliente);
-                        localStorage.setItem('clientesEliminadosUI', JSON.stringify(idsClientesEliminados));
+                        // Evento para Eliminar de la lista principal (permanente en la vista, intacto en la base de datos)
+                        document.querySelectorAll('.btn-eliminar-cliente').forEach(btn => {
+                            btn.addEventListener('click', (e) => {
+                                const idCliente = parseInt(e.target.getAttribute('data-id'));
+
+                                if (confirm('¿Estás seguro de que deseas eliminar este cliente de la lista? (Permanecerá guardado en la base de datos por seguridad de las ventas).')) {
+                                    if (!idsClientesEliminados.includes(idCliente)) {
+                                        idsClientesEliminados.push(idCliente);
+                                        localStorage.setItem('clientesEliminadosUI', JSON.stringify(idsClientesEliminados));
+                                    }
+
+                                    listaClientesGlobal = listaClientesGlobal.filter(c => c.id !== idCliente);
+
+                                    // Validar si hay texto en el buscador para aplicar el filtro actual
+                                    const textoBusqueda = document.getElementById('input-buscar-cliente-tabla').value.toLowerCase().trim();
+                                    if (textoBusqueda) {
+                                        const filtrados = listaClientesGlobal.filter(cli =>
+                                            cli.cedula.toLowerCase().includes(textoBusqueda) ||
+                                            cli.nombre.toLowerCase().includes(textoBusqueda)
+                                        );
+                                        renderizarTablaClientes(filtrados);
+                                    } else {
+                                        renderizarTablaClientes(listaClientesGlobal);
+                                    }
+
+                                    alert('Cliente eliminado de la lista principal con éxito.');
+                                }
+                            });
+                        });
                     }
-                    
-                    listaClientesGlobal = listaClientesGlobal.filter(c => c.id !== idCliente);
-                    
-                    // Validar si hay texto en el buscador para aplicar el filtro actual
-                    const textoBusqueda = document.getElementById('input-buscar-cliente-tabla').value.toLowerCase().trim();
-                    if (textoBusqueda) {
-                        const filtrados = listaClientesGlobal.filter(cli => 
-                            cli.cedula.toLowerCase().includes(textoBusqueda) || 
-                            cli.nombre.toLowerCase().includes(textoBusqueda)
-                        );
-                        renderizarTablaClientes(filtrados);
-                    } else {
-                        renderizarTablaClientes(listaClientesGlobal);
-                    }
 
-                    alert('Cliente eliminado de la lista principal con éxito.');
-                }
-            });
-        });
-    }
+                    cargarClientes();
 
-    cargarClientes();
+                    setTimeout(() => {
+                        // Buscador en tiempo real por Cédula o Nombre
+                        const inputBusqueda = document.getElementById('input-buscar-cliente-tabla');
+                        if (inputBusqueda) {
+                            inputBusqueda.addEventListener('input', (e) => {
+                                const texto = e.target.value.toLowerCase().trim();
+                                const resultados = listaClientesGlobal.filter(cli =>
+                                    cli.cedula.toLowerCase().includes(texto) ||
+                                    cli.nombre.toLowerCase().includes(texto)
+                                );
+                                renderizarTablaClientes(resultados);
+                            });
+                        }
 
-    setTimeout(() => {
-        // Buscador en tiempo real por Cédula o Nombre
-        const inputBusqueda = document.getElementById('input-buscar-cliente-tabla');
-        if (inputBusqueda) {
-            inputBusqueda.addEventListener('input', (e) => {
-                const texto = e.target.value.toLowerCase().trim();
-                const resultados = listaClientesGlobal.filter(cli => 
-                    cli.cedula.toLowerCase().includes(texto) || 
-                    cli.nombre.toLowerCase().includes(texto)
-                );
-                renderizarTablaClientes(resultados);
-            });
-        }
+                        // 1. Registrar Nuevo Cliente con validación de error (Cédula duplicada)
+                        const formCliente = document.getElementById('form-cliente');
+                        if (formCliente) {
+                            formCliente.addEventListener('submit', (e) => {
+                                e.preventDefault();
 
-        // 1. Registrar Nuevo Cliente con validación de error (Cédula duplicada)
-        const formCliente = document.getElementById('form-cliente');
-        if (formCliente) {
-            formCliente.addEventListener('submit', (e) => {
-                e.preventDefault();
+                                const nuevoCliente = {
+                                    nombre: document.getElementById('nombre-cliente').value,
+                                    cedula: document.getElementById('cedula-cliente').value,
+                                    telefono: document.getElementById('telefono-cliente').value,
+                                    email: document.getElementById('email-cliente').value,
+                                    direccion: document.getElementById('direccion-cliente').value
+                                };
 
-                const nuevoCliente = {
-                    nombre: document.getElementById('nombre-cliente').value,
-                    cedula: document.getElementById('cedula-cliente').value,
-                    telefono: document.getElementById('telefono-cliente').value,
-                    email: document.getElementById('email-cliente').value,
-                    direccion: document.getElementById('direccion-cliente').value
-                };
+                                fetch('https://la-micho-heladeria-backend.onrender.com/api/clientes', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify(nuevoCliente)
+                                })
+                                    .then(async response => {
+                                        if (response.ok) {
+                                            formCliente.reset();
+                                            cargarClientes();
+                                            alert('¡Cliente registrado con éxito!');
+                                        } else {
+                                            const mensajeError = await response.text();
+                                            alert('Error: ' + mensajeError);
+                                        }
+                                    })
+                                    .catch(err => console.error('Error en POST:', err));
+                            });
+                        }
 
-                fetch('https://la-micho-heladeria-backend.onrender.com/api/clientes', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(nuevoCliente)
-                })
-                .then(async response => {
-                    if (response.ok) {
-                        formCliente.reset();
-                        cargarClientes();
-                        alert('¡Cliente registrado con éxito!');
-                    } else {
-                        const mensajeError = await response.text();
-                        alert('Error: ' + mensajeError);
-                    }
-                })
-                .catch(err => console.error('Error en POST:', err));
-            });
-        }
+                        // 2. Editar / Actualizar Cliente Existente
+                        const formEditarCliente = document.getElementById('form-editar-cliente');
+                        const btnCancelarEditCliente = document.getElementById('btn-cancelar-edit-cliente');
 
-        // 2. Editar / Actualizar Cliente Existente
-        const formEditarCliente = document.getElementById('form-editar-cliente');
-        const btnCancelarEditCliente = document.getElementById('btn-cancelar-edit-cliente');
+                        if (btnCancelarEditCliente) {
+                            btnCancelarEditCliente.addEventListener('click', () => {
+                                document.getElementById('card-formulario-cliente').style.display = 'none';
+                                formEditarCliente.reset();
+                            });
+                        }
 
-        if (btnCancelarEditCliente) {
-            btnCancelarEditCliente.addEventListener('click', () => {
-                document.getElementById('card-formulario-cliente').style.display = 'none';
-                formEditarCliente.reset();
-            });
-        }
+                        if (formEditarCliente) {
+                            formEditarCliente.addEventListener('submit', (e) => {
+                                e.preventDefault();
+                                const id = document.getElementById('edit-cliente-id').value;
 
-        if (formEditarCliente) {
-            formEditarCliente.addEventListener('submit', (e) => {
-                e.preventDefault();
-                const id = document.getElementById('edit-cliente-id').value;
+                                const clienteActualizado = {
+                                    id: parseInt(id),
+                                    nombre: document.getElementById('edit-cliente-nombre').value,
+                                    cedula: document.getElementById('edit-cliente-cedula').value,
+                                    telefono: document.getElementById('edit-cliente-telefono').value,
+                                    email: document.getElementById('edit-cliente-email').value,
+                                    direccion: document.getElementById('edit-cliente-direccion').value
+                                };
 
-                const clienteActualizado = {
-                    id: parseInt(id),
-                    nombre: document.getElementById('edit-cliente-nombre').value,
-                    cedula: document.getElementById('edit-cliente-cedula').value,
-                    telefono: document.getElementById('edit-cliente-telefono').value,
-                    email: document.getElementById('edit-cliente-email').value,
-                    direccion: document.getElementById('edit-cliente-direccion').value
-                };
-
-                fetch(`https://la-micho-heladeria-backend.onrender.com/api/clientes/${id}`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(clienteActualizado)
-                })
-                .then(async response => {
-                    if (response.ok) {
-                        alert('¡Cliente actualizado con éxito!');
-                        document.getElementById('card-formulario-cliente').style.display = 'none';
-                        formEditarCliente.reset();
-                        cargarClientes();
-                    } else {
-                        const mensajeError = await response.text();
-                        alert('Error al actualizar: ' + mensajeError);
-                    }
-                })
-                .catch(err => console.error('Error en PUT Cliente:', err));
-            });
-        }
-    }, 100);
-    break;
-case 'pos':
-    sectionTitle.textContent = 'Punto de Venta (POS)';
-    // [MODIFICACIÓN UI/UX]: Rejilla POS adaptada a modo oscuro, contrastes correctos y tarjetas estilizadas
-    contentBody.innerHTML = `
+                                fetch(`https://la-micho-heladeria-backend.onrender.com/api/clientes/${id}`, {
+                                    method: 'PUT',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify(clienteActualizado)
+                                })
+                                    .then(async response => {
+                                        if (response.ok) {
+                                            alert('¡Cliente actualizado con éxito!');
+                                            document.getElementById('card-formulario-cliente').style.display = 'none';
+                                            formEditarCliente.reset();
+                                            cargarClientes();
+                                        } else {
+                                            const mensajeError = await response.text();
+                                            alert('Error al actualizar: ' + mensajeError);
+                                        }
+                                    })
+                                    .catch(err => console.error('Error en PUT Cliente:', err));
+                            });
+                        }
+                    }, 100);
+                    break;
+                case 'pos':
+                    sectionTitle.textContent = 'Punto de Venta (POS)';
+                    // [MODIFICACIÓN UI/UX]: Rejilla POS adaptada a modo oscuro, contrastes correctos y tarjetas estilizadas
+                    contentBody.innerHTML = `
         <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 20px;">
             <div class="card">
                 <h3 style="color: #f8fafc;">Seleccionar Productos</h3>
@@ -868,216 +880,216 @@ case 'pos':
         </div>
     `;
 
-    let carrito = [];
-    let productosGlobal = [];
-    let clientesGlobal = [];
+                    let carrito = [];
+                    let productosGlobal = [];
+                    let clientesGlobal = [];
 
-    function renderizarDatalistProductos(listaProductos) {
-        const datalist = document.getElementById('lista-sugerencias-productos');
-        datalist.innerHTML = '';
-        listaProductos.forEach(p => {
-            datalist.innerHTML += `<option value="${p.nombre} - $${p.precio} (Stock: ${p.stock})">`;
-        });
-    }
+                    function renderizarDatalistProductos(listaProductos) {
+                        const datalist = document.getElementById('lista-sugerencias-productos');
+                        datalist.innerHTML = '';
+                        listaProductos.forEach(p => {
+                            datalist.innerHTML += `<option value="${p.nombre} - $${p.precio} (Stock: ${p.stock})">`;
+                        });
+                    }
 
-    function cargarDatosPOS() {
-        fetch('https://la-micho-heladeria-backend.onrender.com/api/Usuarios/productos')
-            .then(res => res.json())
-            .then(data => {
-                productosGlobal = data;
-                renderizarDatalistProductos(productosGlobal);
-            });
+                    function cargarDatosPOS() {
+                        fetch('https://la-micho-heladeria-backend.onrender.com/api/Usuarios/productos')
+                            .then(res => res.json())
+                            .then(data => {
+                                productosGlobal = data;
+                                renderizarDatalistProductos(productosGlobal);
+                            });
 
-        fetch('https://la-micho-heladeria-backend.onrender.com/api/Usuarios/clientes')
-            .then(res => res.json())
-            .then(data => {
-                clientesGlobal = data;
-            });
-    }
+                        fetch('https://la-micho-heladeria-backend.onrender.com/api/Usuarios/clientes')
+                            .then(res => res.json())
+                            .then(data => {
+                                clientesGlobal = data;
+                            });
+                    }
 
-    cargarDatosPOS();
+                    cargarDatosPOS();
 
-    setTimeout(() => {
-        const btnAgregar = document.getElementById('btn-agregar-carrito');
-        const btnProcesar = document.getElementById('btn-procesar-venta');
-        const btnCancelarVenta = document.getElementById('btn-cancelar-venta');
-        const btnBuscarCliente = document.getElementById('btn-buscar-cliente');
-        const inputBusquedaCedula = document.getElementById('busqueda-cedula');
-        const infoClienteContainer = document.getElementById('info-cliente-container');
-        const textoClienteEncontrado = document.getElementById('texto-cliente-encontrado');
-        const formNuevoClientePos = document.getElementById('form-nuevo-cliente-pos');
-        const clienteSeleccionadoIdInput = document.getElementById('cliente-seleccionado-id');
-        const btnRegistrarRapido = document.getElementById('btn-registrar-rapido');
-        const btnCambiarCliente = document.getElementById('btn-cambiar-cliente');
-        
-        const inputBuscarProducto = document.getElementById('input-buscar-producto');
-        const productoSeleccionadoIdInput = document.getElementById('producto-seleccionado-id');
-        const inputMontoPago = document.getElementById('input-monto-pago');
-        const selectMetodoPago = document.getElementById('select-metodo-pago');
-        const spanCambio = document.getElementById('span-cambio');
-        const spanTotal = document.getElementById('span-total');
+                    setTimeout(() => {
+                        const btnAgregar = document.getElementById('btn-agregar-carrito');
+                        const btnProcesar = document.getElementById('btn-procesar-venta');
+                        const btnCancelarVenta = document.getElementById('btn-cancelar-venta');
+                        const btnBuscarCliente = document.getElementById('btn-buscar-cliente');
+                        const inputBusquedaCedula = document.getElementById('busqueda-cedula');
+                        const infoClienteContainer = document.getElementById('info-cliente-container');
+                        const textoClienteEncontrado = document.getElementById('texto-cliente-encontrado');
+                        const formNuevoClientePos = document.getElementById('form-nuevo-cliente-pos');
+                        const clienteSeleccionadoIdInput = document.getElementById('cliente-seleccionado-id');
+                        const btnRegistrarRapido = document.getElementById('btn-registrar-rapido');
+                        const btnCambiarCliente = document.getElementById('btn-cambiar-cliente');
 
-        inputBuscarProducto.addEventListener('input', () => {
-            const valorEscrito = inputBuscarProducto.value.trim();
-            const productoEncontrado = productosGlobal.find(p => 
-                valorEscrito.includes(p.nombre) || p.nombre.toLowerCase() === valorEscrito.toLowerCase()
-            );
+                        const inputBuscarProducto = document.getElementById('input-buscar-producto');
+                        const productoSeleccionadoIdInput = document.getElementById('producto-seleccionado-id');
+                        const inputMontoPago = document.getElementById('input-monto-pago');
+                        const selectMetodoPago = document.getElementById('select-metodo-pago');
+                        const spanCambio = document.getElementById('span-cambio');
+                        const spanTotal = document.getElementById('span-total');
 
-            if (productoEncontrado) {
-                productoSeleccionadoIdInput.value = productoEncontrado.id;
-            } else {
-                productoSeleccionadoIdInput.value = '';
-            }
-        });
+                        inputBuscarProducto.addEventListener('input', () => {
+                            const valorEscrito = inputBuscarProducto.value.trim();
+                            const productoEncontrado = productosGlobal.find(p =>
+                                valorEscrito.includes(p.nombre) || p.nombre.toLowerCase() === valorEscrito.toLowerCase()
+                            );
 
-        function calcularCambio() {
-            const totalGeneral = carrito.reduce((acc, item) => acc + (item.precioUnitario * item.cantidad), 0);
-            const montoPagado = parseFloat(inputMontoPago.value) || 0;
-            const cambio = montoPagado - totalGeneral;
-            spanCambio.textContent = cambio >= 0 ? cambio.toFixed(2) : '0.00';
-        }
+                            if (productoEncontrado) {
+                                productoSeleccionadoIdInput.value = productoEncontrado.id;
+                            } else {
+                                productoSeleccionadoIdInput.value = '';
+                            }
+                        });
 
-        inputMontoPago.addEventListener('input', calcularCambio);
+                        function calcularCambio() {
+                            const totalGeneral = carrito.reduce((acc, item) => acc + (item.precioUnitario * item.cantidad), 0);
+                            const montoPagado = parseFloat(inputMontoPago.value) || 0;
+                            const cambio = montoPagado - totalGeneral;
+                            spanCambio.textContent = cambio >= 0 ? cambio.toFixed(2) : '0.00';
+                        }
 
-        btnBuscarCliente.addEventListener('click', () => {
-            const cedulaBuscada = inputBusquedaCedula.value.trim();
-            if (!cedulaBuscada) {
-                alert('Por favor ingrese un número de cédula para buscar.');
-                return;
-            }
+                        inputMontoPago.addEventListener('input', calcularCambio);
 
-            const clienteEncontrado = clientesGlobal.find(c => c.cedula === cedulaBuscada);
+                        btnBuscarCliente.addEventListener('click', () => {
+                            const cedulaBuscada = inputBusquedaCedula.value.trim();
+                            if (!cedulaBuscada) {
+                                alert('Por favor ingrese un número de cédula para buscar.');
+                                return;
+                            }
 
-            if (clienteEncontrado) {
-                clienteSeleccionadoIdInput.value = clienteEncontrado.id;
-                textoClienteEncontrado.textContent = `✔ Cliente: ${clienteEncontrado.nombre} (Cédula: ${clienteEncontrado.cedula})`;
-                infoClienteContainer.style.display = 'block';
-                formNuevoClientePos.style.display = 'none';
-                inputBusquedaCedula.disabled = true;
-                btnBuscarCliente.disabled = true;
-            } else {
-                clienteSeleccionadoIdInput.value = '';
-                infoClienteContainer.style.display = 'none';
-                formNuevoClientePos.style.display = 'block';
-                alert('Cliente no encontrado. Puede registrarlo abajo de forma rápida o continuar sin cliente.');
-            }
-        });
+                            const clienteEncontrado = clientesGlobal.find(c => c.cedula === cedulaBuscada);
 
-        btnCambiarCliente.addEventListener('click', () => {
-            clienteSeleccionadoIdInput.value = '';
-            infoClienteContainer.style.display = 'none';
-            inputBusquedaCedula.value = '';
-            inputBusquedaCedula.disabled = false;
-            btnBuscarCliente.disabled = false;
-        });
+                            if (clienteEncontrado) {
+                                clienteSeleccionadoIdInput.value = clienteEncontrado.id;
+                                textoClienteEncontrado.textContent = `✔ Cliente: ${clienteEncontrado.nombre} (Cédula: ${clienteEncontrado.cedula})`;
+                                infoClienteContainer.style.display = 'block';
+                                formNuevoClientePos.style.display = 'none';
+                                inputBusquedaCedula.disabled = true;
+                                btnBuscarCliente.disabled = true;
+                            } else {
+                                clienteSeleccionadoIdInput.value = '';
+                                infoClienteContainer.style.display = 'none';
+                                formNuevoClientePos.style.display = 'block';
+                                alert('Cliente no encontrado. Puede registrarlo abajo de forma rápida o continuar sin cliente.');
+                            }
+                        });
 
-        btnRegistrarRapido.addEventListener('click', () => {
-            const nombre = document.getElementById('pos-nuevo-nombre').value.trim();
-            const cedula = inputBusquedaCedula.value.trim();
-            const telefono = document.getElementById('pos-nuevo-telefono').value.trim();
-            const email = document.getElementById('pos-nuevo-email').value.trim();
-            const direccion = document.getElementById('pos-nuevo-direccion').value.trim();
+                        btnCambiarCliente.addEventListener('click', () => {
+                            clienteSeleccionadoIdInput.value = '';
+                            infoClienteContainer.style.display = 'none';
+                            inputBusquedaCedula.value = '';
+                            inputBusquedaCedula.disabled = false;
+                            btnBuscarCliente.disabled = false;
+                        });
 
-            if (!nombre || !cedula || !telefono || !direccion) {
-                alert('Por favor complete todos los campos para el registro del cliente.');
-                return;
-            }
+                        btnRegistrarRapido.addEventListener('click', () => {
+                            const nombre = document.getElementById('pos-nuevo-nombre').value.trim();
+                            const cedula = inputBusquedaCedula.value.trim();
+                            const telefono = document.getElementById('pos-nuevo-telefono').value.trim();
+                            const email = document.getElementById('pos-nuevo-email').value.trim();
+                            const direccion = document.getElementById('pos-nuevo-direccion').value.trim();
 
-            const nuevoCliente = { nombre, cedula, telefono, email, direccion };
+                            if (!nombre || !cedula || !telefono || !direccion) {
+                                alert('Por favor complete todos los campos para el registro del cliente.');
+                                return;
+                            }
 
-            fetch('https://la-micho-heladeria-backend.onrender.com/api/Usuarios/clientes', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(nuevoCliente)
-            })
-            .then(response => {
-                if (response.ok) {
-                    return response.json().catch(() => null);
-                } else {
-                    throw new Error('Error al registrar el cliente.');
-                }
-            })
-            .then(() => fetch('https://la-micho-heladeria-backend.onrender.com/api/Usuarios/clientes'))
-            .then(res => res.json())
-            .then(data => {
-                clientesGlobal = data;
-                const clienteCreado = clientesGlobal.find(c => c.cedula === cedula);
-                if (clienteCreado) {
-                    clienteSeleccionadoIdInput.value = clienteCreado.id;
-                    textoClienteEncontrado.textContent = `✔ Cliente Registrado y Seleccionado: ${clienteCreado.nombre} (Cédula: ${clienteCreado.cedula})`;
-                    infoClienteContainer.style.display = 'block';
-                    formNuevoClientePos.style.display = 'none';
-                    inputBusquedaCedula.disabled = true;
-                    btnBuscarCliente.disabled = true;
-                    alert('¡Cliente registrado con éxito y asignado a la venta!');
-                }
-            })
-            .catch(err => {
-                console.error('Error:', err);
-                alert('No se pudo registrar el cliente.');
-            });
-        });
+                            const nuevoCliente = { nombre, cedula, telefono, email, direccion };
 
-        btnAgregar.addEventListener('click', () => {
-            const prodId = parseInt(productoSeleccionadoIdInput.value);
-            const cantidad = parseInt(document.getElementById('cantidad-producto').value);
+                            fetch('https://la-micho-heladeria-backend.onrender.com/api/Usuarios/clientes', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify(nuevoCliente)
+                            })
+                                .then(response => {
+                                    if (response.ok) {
+                                        return response.json().catch(() => null);
+                                    } else {
+                                        throw new Error('Error al registrar el cliente.');
+                                    }
+                                })
+                                .then(() => fetch('https://la-micho-heladeria-backend.onrender.com/api/Usuarios/clientes'))
+                                .then(res => res.json())
+                                .then(data => {
+                                    clientesGlobal = data;
+                                    const clienteCreado = clientesGlobal.find(c => c.cedula === cedula);
+                                    if (clienteCreado) {
+                                        clienteSeleccionadoIdInput.value = clienteCreado.id;
+                                        textoClienteEncontrado.textContent = `✔ Cliente Registrado y Seleccionado: ${clienteCreado.nombre} (Cédula: ${clienteCreado.cedula})`;
+                                        infoClienteContainer.style.display = 'block';
+                                        formNuevoClientePos.style.display = 'none';
+                                        inputBusquedaCedula.disabled = true;
+                                        btnBuscarCliente.disabled = true;
+                                        alert('¡Cliente registrado con éxito y asignado a la venta!');
+                                    }
+                                })
+                                .catch(err => {
+                                    console.error('Error:', err);
+                                    alert('No se pudo registrar el cliente.');
+                                });
+                        });
 
-            if (!prodId) {
-                alert('Por favor seleccione o escriba un producto válido de la lista.');
-                return;
-            }
-            if (cantidad <= 0) {
-                alert('La cantidad debe ser mayor a 0.');
-                return;
-            }
+                        btnAgregar.addEventListener('click', () => {
+                            const prodId = parseInt(productoSeleccionadoIdInput.value);
+                            const cantidad = parseInt(document.getElementById('cantidad-producto').value);
 
-            const productoInfo = productosGlobal.find(p => p.id === prodId);
-            if (!productoInfo) return;
+                            if (!prodId) {
+                                alert('Por favor seleccione o escriba un producto válido de la lista.');
+                                return;
+                            }
+                            if (cantidad <= 0) {
+                                alert('La cantidad debe ser mayor a 0.');
+                                return;
+                            }
 
-            if (productoInfo.stock < cantidad) {
-                alert(`Stock insuficiente. Stock disponible: ${productoInfo.stock}`);
-                return;
-            }
+                            const productoInfo = productosGlobal.find(p => p.id === prodId);
+                            if (!productoInfo) return;
 
-            const itemExistente = carrito.find(item => item.idProducto === prodId);
-            if (itemExistente) {
-                if (productoInfo.stock < (itemExistente.cantidad + cantidad)) {
-                    alert('No hay suficiente stock para agregar más unidades.');
-                    return;
-                }
-                itemExistente.cantidad += cantidad;
-            } else {
-                carrito.push({
-                    idProducto: prodId,
-                    nombre: productoInfo.nombre,
-                    precioUnitario: productoInfo.precio,
-                    cantidad: cantidad
-                });
-            }
+                            if (productoInfo.stock < cantidad) {
+                                alert(`Stock insuficiente. Stock disponible: ${productoInfo.stock}`);
+                                return;
+                            }
 
-            actualizarCarritoUI();
+                            const itemExistente = carrito.find(item => item.idProducto === prodId);
+                            if (itemExistente) {
+                                if (productoInfo.stock < (itemExistente.cantidad + cantidad)) {
+                                    alert('No hay suficiente stock para agregar más unidades.');
+                                    return;
+                                }
+                                itemExistente.cantidad += cantidad;
+                            } else {
+                                carrito.push({
+                                    idProducto: prodId,
+                                    nombre: productoInfo.nombre,
+                                    precioUnitario: productoInfo.precio,
+                                    cantidad: cantidad
+                                });
+                            }
 
-            document.getElementById('cantidad-producto').value = '1';
-            inputBuscarProducto.value = '';
-            productoSeleccionadoIdInput.value = '';
-        });
+                            actualizarCarritoUI();
 
-        function actualizarCarritoUI() {
-            const tbody = document.getElementById('carrito-body');
-            tbody.innerHTML = '';
+                            document.getElementById('cantidad-producto').value = '1';
+                            inputBuscarProducto.value = '';
+                            productoSeleccionadoIdInput.value = '';
+                        });
 
-            if (carrito.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" style="padding: 15px; text-align: center; color: #94a3b8;">No hay productos en el carrito.</td></tr>';
-                spanTotal.textContent = '0.00';
-                spanCambio.textContent = '0.00';
-                return;
-            }
+                        function actualizarCarritoUI() {
+                            const tbody = document.getElementById('carrito-body');
+                            tbody.innerHTML = '';
 
-            let totalGeneral = 0;
-            carrito.forEach((item, index) => {
-                const subtotal = item.precioUnitario * item.cantidad;
-                totalGeneral += subtotal;
-                tbody.innerHTML += `
+                            if (carrito.length === 0) {
+                                tbody.innerHTML = '<tr><td colspan="5" style="padding: 15px; text-align: center; color: #94a3b8;">No hay productos en el carrito.</td></tr>';
+                                spanTotal.textContent = '0.00';
+                                spanCambio.textContent = '0.00';
+                                return;
+                            }
+
+                            let totalGeneral = 0;
+                            carrito.forEach((item, index) => {
+                                const subtotal = item.precioUnitario * item.cantidad;
+                                totalGeneral += subtotal;
+                                tbody.innerHTML += `
                     <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.05);">
                         <td style="padding: 10px;">${item.nombre}</td>
                         <td style="padding: 10px; color: #34d399;">$${item.precioUnitario}</td>
@@ -1090,129 +1102,129 @@ case 'pos':
                         </td>
                     </tr>
                 `;
-            });
+                            });
 
-            spanTotal.textContent = totalGeneral.toFixed(2);
-            calcularCambio();
+                            spanTotal.textContent = totalGeneral.toFixed(2);
+                            calcularCambio();
 
-            document.querySelectorAll('.input-cambiar-cantidad').forEach(input => {
-                input.addEventListener('change', (e) => {
-                    const index = e.target.getAttribute('data-index');
-                    const nuevaCantidad = parseInt(e.target.value);
-                    const productoInfo = productosGlobal.find(p => p.id === carrito[index].idProducto);
+                            document.querySelectorAll('.input-cambiar-cantidad').forEach(input => {
+                                input.addEventListener('change', (e) => {
+                                    const index = e.target.getAttribute('data-index');
+                                    const nuevaCantidad = parseInt(e.target.value);
+                                    const productoInfo = productosGlobal.find(p => p.id === carrito[index].idProducto);
 
-                    if (nuevaCantidad <= 0 || isNaN(nuevaCantidad)) {
-                        alert('La cantidad debe ser al menos 1.');
-                        e.target.value = carrito[index].cantidad;
-                        return;
-                    }
+                                    if (nuevaCantidad <= 0 || isNaN(nuevaCantidad)) {
+                                        alert('La cantidad debe ser al menos 1.');
+                                        e.target.value = carrito[index].cantidad;
+                                        return;
+                                    }
 
-                    if (productoInfo && productoInfo.stock < nuevaCantidad) {
-                        alert(`Stock insuficiente. Stock disponible: ${productoInfo.stock}`);
-                        e.target.value = carrito[index].cantidad;
-                        return;
-                    }
+                                    if (productoInfo && productoInfo.stock < nuevaCantidad) {
+                                        alert(`Stock insuficiente. Stock disponible: ${productoInfo.stock}`);
+                                        e.target.value = carrito[index].cantidad;
+                                        return;
+                                    }
 
-                    carrito[index].cantidad = nuevaCantidad;
-                    actualizarCarritoUI();
-                });
-            });
+                                    carrito[index].cantidad = nuevaCantidad;
+                                    actualizarCarritoUI();
+                                });
+                            });
 
-            document.querySelectorAll('.btn-eliminar-item').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    const index = e.target.getAttribute('data-index');
-                    carrito.splice(index, 1);
-                    actualizarCarritoUI();
-                });
-            });
-        }
+                            document.querySelectorAll('.btn-eliminar-item').forEach(btn => {
+                                btn.addEventListener('click', (e) => {
+                                    const index = e.target.getAttribute('data-index');
+                                    carrito.splice(index, 1);
+                                    actualizarCarritoUI();
+                                });
+                            });
+                        }
 
-        btnCancelarVenta.addEventListener('click', () => {
-            if (carrito.length === 0 && !clienteSeleccionadoIdInput.value) {
-                alert('No hay una venta en proceso para cancelar.');
-                return;
-            }
+                        btnCancelarVenta.addEventListener('click', () => {
+                            if (carrito.length === 0 && !clienteSeleccionadoIdInput.value) {
+                                alert('No hay una venta en proceso para cancelar.');
+                                return;
+                            }
 
-            if (confirm('¿Estás seguro de que deseas cancelar el proceso de venta actual? Se perderán los datos ingresados.')) {
-                carrito = [];
-                actualizarCarritoUI();
-                
-                clienteSeleccionadoIdInput.value = '';
-                infoClienteContainer.style.display = 'none';
-                formNuevoClientePos.style.display = 'none';
-                inputBusquedaCedula.value = '';
-                inputBusquedaCedula.disabled = false;
-                btnBuscarCliente.disabled = false;
+                            if (confirm('¿Estás seguro de que deseas cancelar el proceso de venta actual? Se perderán los datos ingresados.')) {
+                                carrito = [];
+                                actualizarCarritoUI();
 
-                inputBuscarProducto.value = '';
-                productoSeleccionadoIdInput.value = '';
-                document.getElementById('cantidad-producto').value = '1';
-                inputMontoPago.value = '';
-                spanCambio.textContent = '0.00';
+                                clienteSeleccionadoIdInput.value = '';
+                                infoClienteContainer.style.display = 'none';
+                                formNuevoClientePos.style.display = 'none';
+                                inputBusquedaCedula.value = '';
+                                inputBusquedaCedula.disabled = false;
+                                btnBuscarCliente.disabled = false;
 
-                alert('Venta cancelada con éxito.');
-            }
-        });
+                                inputBuscarProducto.value = '';
+                                productoSeleccionadoIdInput.value = '';
+                                document.getElementById('cantidad-producto').value = '1';
+                                inputMontoPago.value = '';
+                                spanCambio.textContent = '0.00';
 
-        btnProcesar.addEventListener('click', () => {
-            const clienteIdRaw = clienteSeleccionadoIdInput.value.trim();
-            const clienteId = clienteIdRaw ? parseInt(clienteIdRaw) : null;
+                                alert('Venta cancelada con éxito.');
+                            }
+                        });
 
-            if (carrito.length === 0) {
-                alert('El carrito de compras está vacío.');
-                return;
-            }
+                        btnProcesar.addEventListener('click', () => {
+                            const clienteIdRaw = clienteSeleccionadoIdInput.value.trim();
+                            const clienteId = clienteIdRaw ? parseInt(clienteIdRaw) : null;
 
-            const totalGeneral = carrito.reduce((acc, item) => acc + (item.precioUnitario * item.cantidad), 0);
-            const montoPagado = parseFloat(inputMontoPago.value) || 0;
-            const metodoSeleccionado = selectMetodoPago.value;
+                            if (carrito.length === 0) {
+                                alert('El carrito de compras está vacío.');
+                                return;
+                            }
 
-            if (montoPagado < totalGeneral) {
-                alert('El monto pagado es menor al total de la venta.');
-                return;
-            }
+                            const totalGeneral = carrito.reduce((acc, item) => acc + (item.precioUnitario * item.cantidad), 0);
+                            const montoPagado = parseFloat(inputMontoPago.value) || 0;
+                            const metodoSeleccionado = selectMetodoPago.value;
 
-            const cambio = montoPagado - totalGeneral;
+                            if (montoPagado < totalGeneral) {
+                                alert('El monto pagado es menor al total de la venta.');
+                                return;
+                            }
 
-            const ventaData = {
-                idCliente: clienteId,
-                metodoPago: metodoSeleccionado,
-                detalleVenta: carrito.map(item => ({
-                    idProducto: item.idProducto,
-                    cantidad: item.cantidad
-                }))
-            };
+                            const cambio = montoPagado - totalGeneral;
 
-            fetch('https://la-micho-heladeria-backend.onrender.com/api/Usuarios/ventas', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(ventaData)
-            })
-            .then(response => {
-                if (response.ok) {
-                    alert(`¡Venta procesada con éxito!\nMétodo: ${metodoSeleccionado}\nCambio a devolver: $${cambio.toFixed(2)}`);
-                    carrito = [];
-                    inputMontoPago.value = '';
-                    actualizarCarritoUI();
-                    cargarDatosPOS();
-                    clienteSeleccionadoIdInput.value = '';
-                    infoClienteContainer.style.display = 'none';
-                    formNuevoClientePos.style.display = 'none';
-                    inputBusquedaCedula.value = '';
-                    inputBusquedaCedula.disabled = false;
-                    btnBuscarCliente.disabled = false;
-                } else {
-                    response.text().then(err => alert('Error al procesar la venta: ' + err));
-                }
-            })
-            .catch(error => console.error('Error en POST Venta:', error));
-        });
-    }, 100);
-    break;
+                            const ventaData = {
+                                idCliente: clienteId,
+                                metodoPago: metodoSeleccionado,
+                                detalleVenta: carrito.map(item => ({
+                                    idProducto: item.idProducto,
+                                    cantidad: item.cantidad
+                                }))
+                            };
 
-          case 'ventas-dia':
-    sectionTitle.textContent = 'Ventas del Día';
-    contentBody.innerHTML = `
+                            fetch('https://la-micho-heladeria-backend.onrender.com/api/Usuarios/ventas', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify(ventaData)
+                            })
+                                .then(response => {
+                                    if (response.ok) {
+                                        alert(`¡Venta procesada con éxito!\nMétodo: ${metodoSeleccionado}\nCambio a devolver: $${cambio.toFixed(2)}`);
+                                        carrito = [];
+                                        inputMontoPago.value = '';
+                                        actualizarCarritoUI();
+                                        cargarDatosPOS();
+                                        clienteSeleccionadoIdInput.value = '';
+                                        infoClienteContainer.style.display = 'none';
+                                        formNuevoClientePos.style.display = 'none';
+                                        inputBusquedaCedula.value = '';
+                                        inputBusquedaCedula.disabled = false;
+                                        btnBuscarCliente.disabled = false;
+                                    } else {
+                                        response.text().then(err => alert('Error al procesar la venta: ' + err));
+                                    }
+                                })
+                                .catch(error => console.error('Error en POST Venta:', error));
+                        });
+                    }, 100);
+                    break;
+
+                case 'ventas-dia':
+                    sectionTitle.textContent = 'Ventas del Día';
+                    contentBody.innerHTML = `
 
       <!-- Tarjeta del Gran Total Global -->
         <div class="card" style="margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; background: linear-gradient(135deg, #0f172a, #1e293b);">
@@ -1247,107 +1259,107 @@ case 'pos':
         </div>
     `;
 
-    function cargarVentasDelDia() {
-        const fechaLocal = new Date().toLocaleDateString('en-CA');
+                    function cargarVentasDelDia() {
+                        const fechaLocal = new Date().toLocaleDateString('en-CA');
 
-        fetch(`https://la-micho-heladeria-backend.onrender.com/api/Usuarios/Ventas/PorFecha?fecha=${fechaLocal}`)
-            .then(res => res.json())
-            .then(ventas => {
-                const contenedor = document.getElementById('contenedor-desglose-metodos');
-                const spanTotalDia = document.getElementById('total-ventas-dia');
-                const spanEfectivo = document.getElementById('total-efectivo');
-                const spanTransferencia = document.getElementById('total-transferencia');
-                const spanDatafono = document.getElementById('total-datafono');
+                        fetch(`https://la-micho-heladeria-backend.onrender.com/api/Usuarios/Ventas/PorFecha?fecha=${fechaLocal}`)
+                            .then(res => res.json())
+                            .then(ventas => {
+                                const contenedor = document.getElementById('contenedor-desglose-metodos');
+                                const spanTotalDia = document.getElementById('total-ventas-dia');
+                                const spanEfectivo = document.getElementById('total-efectivo');
+                                const spanTransferencia = document.getElementById('total-transferencia');
+                                const spanDatafono = document.getElementById('total-datafono');
 
-                if (!ventas || ventas.length === 0) {
-                    contenedor.innerHTML = '<p style="padding: 15px; text-align: center; color: #94a3b8;">No se han registrado ventas el día de hoy.</p>';
-                    spanTotalDia.textContent = '$0.00';
-                    spanEfectivo.textContent = '$0.00';
-                    spanTransferencia.textContent = '$0.00';
-                    spanDatafono.textContent = '$0.00';
-                    return;
-                }
+                                if (!ventas || ventas.length === 0) {
+                                    contenedor.innerHTML = '<p style="padding: 15px; text-align: center; color: #94a3b8;">No se han registrado ventas el día de hoy.</p>';
+                                    spanTotalDia.textContent = '$0.00';
+                                    spanEfectivo.textContent = '$0.00';
+                                    spanTransferencia.textContent = '$0.00';
+                                    spanDatafono.textContent = '$0.00';
+                                    return;
+                                }
 
-                // Clasificamos y calculamos totales por método de pago
-                let grupos = {
-                    'Efectivo': [],
-                    'Transferencia': [],
-                    'Datáfono': []
-                };
+                                // Clasificamos y calculamos totales por método de pago
+                                let grupos = {
+                                    'Efectivo': [],
+                                    'Transferencia': [],
+                                    'Datáfono': []
+                                };
 
-                let totalesGrupo = {
-                    'Efectivo': 0,
-                    'Transferencia': 0,
-                    'Datáfono': 0
-                };
+                                let totalesGrupo = {
+                                    'Efectivo': 0,
+                                    'Transferencia': 0,
+                                    'Datáfono': 0
+                                };
 
-                let granTotalGlobal = 0;
+                                let granTotalGlobal = 0;
 
-                ventas.forEach(venta => {
-                    const hora = venta.fecha ? venta.fecha.split('T')[1].substring(0, 5) : 'N/A';
-                    
-                    let totalVenta = 0;
-                    let listaProductosHTML = '<ul style="margin: 0; padding-left: 20px; color: #94a3b8;">';
-                    
-                    if (venta.detalleVenta && venta.detalleVenta.length > 0) {
-                        venta.detalleVenta.forEach(det => {
-                            const subtotal = det.cantidad * det.precioUnitario;
-                            totalVenta += subtotal;
-                            const prodNombre = det.idProductoNavigation ? det.idProductoNavigation.nombre : `ID: ${det.idProducto}`;
-                            listaProductosHTML += `<li style="margin-bottom: 4px;"><strong style="color: #f3f4f6;">${prodNombre}</strong> - Cantidad: ${det.cantidad} | Subtotal: <span style="color: #38bdf8;">$${subtotal.toFixed(2)}</span></li>`;
-                        });
-                    }
-                    listaProductosHTML += '</ul>';
+                                ventas.forEach(venta => {
+                                    const hora = venta.fecha ? venta.fecha.split('T')[1].substring(0, 5) : 'N/A';
 
-                    // Normalización robusta del método de pago
-                    let metodoOriginal = venta.metodoPago ? venta.metodoPago.trim().toLowerCase() : 'efectivo';
-                    let metodo = 'Efectivo';
+                                    let totalVenta = 0;
+                                    let listaProductosHTML = '<ul style="margin: 0; padding-left: 20px; color: #94a3b8;">';
 
-                    if (metodoOriginal.includes('transf') || metodoOriginal.includes('nequi') || metodoOriginal.includes('daviplata')) {
-                        metodo = 'Transferencia';
-                    } else if (metodoOriginal.includes('data') || metodoOriginal.includes('tarj') || metodoOriginal.includes('pos') || metodoOriginal.includes('datáfo')) {
-                        metodo = 'Datáfono';
-                    } else if (metodoOriginal.includes('efect') || metodoOriginal.includes('cash')) {
-                        metodo = 'Efectivo';
-                    } else {
-                        metodo = 'Efectivo';
-                    }
+                                    if (venta.detalleVenta && venta.detalleVenta.length > 0) {
+                                        venta.detalleVenta.forEach(det => {
+                                            const subtotal = det.cantidad * det.precioUnitario;
+                                            totalVenta += subtotal;
+                                            const prodNombre = det.idProductoNavigation ? det.idProductoNavigation.nombre : `ID: ${det.idProducto}`;
+                                            listaProductosHTML += `<li style="margin-bottom: 4px;"><strong style="color: #f3f4f6;">${prodNombre}</strong> - Cantidad: ${det.cantidad} | Subtotal: <span style="color: #38bdf8;">$${subtotal.toFixed(2)}</span></li>`;
+                                        });
+                                    }
+                                    listaProductosHTML += '</ul>';
 
-                    if (!grupos[metodo]) {
-                        grupos[metodo] = [];
-                        totalesGrupo[metodo] = 0;
-                    }
+                                    // Normalización robusta del método de pago
+                                    let metodoOriginal = venta.metodoPago ? venta.metodoPago.trim().toLowerCase() : 'efectivo';
+                                    let metodo = 'Efectivo';
 
-                    grupos[metodo].push({
-                        id: venta.id,
-                        hora: hora,
-                        total: totalVenta,
-                        productosHTML: listaProductosHTML
-                    });
+                                    if (metodoOriginal.includes('transf') || metodoOriginal.includes('nequi') || metodoOriginal.includes('daviplata')) {
+                                        metodo = 'Transferencia';
+                                    } else if (metodoOriginal.includes('data') || metodoOriginal.includes('tarj') || metodoOriginal.includes('pos') || metodoOriginal.includes('datáfo')) {
+                                        metodo = 'Datáfono';
+                                    } else if (metodoOriginal.includes('efect') || metodoOriginal.includes('cash')) {
+                                        metodo = 'Efectivo';
+                                    } else {
+                                        metodo = 'Efectivo';
+                                    }
 
-                    totalesGrupo[metodo] += totalVenta;
-                    granTotalGlobal += totalVenta;
-                });
+                                    if (!grupos[metodo]) {
+                                        grupos[metodo] = [];
+                                        totalesGrupo[metodo] = 0;
+                                    }
 
-                // Actualizamos las tarjetas superiores
-                spanEfectivo.textContent = `$${totalesGrupo['Efectivo'].toFixed(2)}`;
-                spanTransferencia.textContent = `$${totalesGrupo['Transferencia'].toFixed(2)}`;
-                spanDatafono.textContent = `$${totalesGrupo['Datáfono'].toFixed(2)}`;
-                spanTotalDia.textContent = `$${granTotalGlobal.toFixed(2)}`;
+                                    grupos[metodo].push({
+                                        id: venta.id,
+                                        hora: hora,
+                                        total: totalVenta,
+                                        productosHTML: listaProductosHTML
+                                    });
 
-                // Construimos las listas desplegables principales por método de pago
-                let htmlDesglose = '<div style="display: flex; flex-direction: column; gap: 12px;">';
+                                    totalesGrupo[metodo] += totalVenta;
+                                    granTotalGlobal += totalVenta;
+                                });
 
-                const metodosKeys = Object.keys(grupos);
-                metodosKeys.forEach(metodo => {
-                    const listaVentas = grupos[metodo];
-                    const subtotalMetodo = totalesGrupo[metodo];
-                    
-                    let colorBorde = '#38bdf8';
-                    if (metodo === 'Transferencia') colorBorde = '#a855f7';
-                    if (metodo === 'Datáfono') colorBorde = '#34d399';
+                                // Actualizamos las tarjetas superiores
+                                spanEfectivo.textContent = `$${totalesGrupo['Efectivo'].toFixed(2)}`;
+                                spanTransferencia.textContent = `$${totalesGrupo['Transferencia'].toFixed(2)}`;
+                                spanDatafono.textContent = `$${totalesGrupo['Datáfono'].toFixed(2)}`;
+                                spanTotalDia.textContent = `$${granTotalGlobal.toFixed(2)}`;
 
-                    htmlDesglose += `
+                                // Construimos las listas desplegables principales por método de pago
+                                let htmlDesglose = '<div style="display: flex; flex-direction: column; gap: 12px;">';
+
+                                const metodosKeys = Object.keys(grupos);
+                                metodosKeys.forEach(metodo => {
+                                    const listaVentas = grupos[metodo];
+                                    const subtotalMetodo = totalesGrupo[metodo];
+
+                                    let colorBorde = '#38bdf8';
+                                    if (metodo === 'Transferencia') colorBorde = '#a855f7';
+                                    if (metodo === 'Datáfono') colorBorde = '#34d399';
+
+                                    htmlDesglose += `
                         <details style="background: #0f172a; border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; overflow: hidden; border-left: 4px solid ${colorBorde};">
                             <summary style="padding: 14px 18px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-weight: 600; color: #f8fafc; user-select: none; background: rgba(255,255,255,0.02);">
                                 <span>${metodo} <span style="font-size: 0.85rem; color: #94a3b8; font-weight: normal; margin-left: 8px;">(${listaVentas.length} transacciones)</span></span>
@@ -1356,10 +1368,10 @@ case 'pos':
                             <div style="padding: 15px 20px; border-top: 1px solid rgba(255,255,255,0.05); background: #0b0f19;">
                     `;
 
-                    if (listaVentas.length === 0) {
-                        htmlDesglose += `<p style="color: #94a3b8; font-size: 0.9rem; margin: 0; text-align: center;">No hay ventas registradas con este método.</p>`;
-                    } else {
-                        htmlDesglose += `
+                                    if (listaVentas.length === 0) {
+                                        htmlDesglose += `<p style="color: #94a3b8; font-size: 0.9rem; margin: 0; text-align: center;">No hay ventas registradas con este método.</p>`;
+                                    } else {
+                                        htmlDesglose += `
                             <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem;">
                                 <thead>
                                     <tr style="color: #94a3b8; border-bottom: 1px solid rgba(255,255,255,0.1);">
@@ -1372,8 +1384,8 @@ case 'pos':
                                 <tbody>
                         `;
 
-                        listaVentas.forEach(item => {
-                            htmlDesglose += `
+                                        listaVentas.forEach(item => {
+                                            htmlDesglose += `
                                 <tr style="border-bottom: 1px solid rgba(255,255,255,0.03);">
                                     <td style="padding: 10px 8px; color: #94a3b8;">#${item.id}</td>
                                     <td style="padding: 10px 8px; color: #f3f4f6;">${item.hora}</td>
@@ -1389,9 +1401,9 @@ case 'pos':
                                     </td>
                                 </tr>
                             `;
-                        });
+                                        });
 
-                        htmlDesglose += `
+                                        htmlDesglose += `
                                 </tbody>
                             </table>
                             <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 12px; padding-top: 10px; border-top: 1px dashed rgba(255,255,255,0.1); font-weight: bold;">
@@ -1399,48 +1411,48 @@ case 'pos':
                                 <span style="color: ${colorBorde};">$${subtotalMetodo.toFixed(2)}</span>
                             </div>
                         `;
-                    }
+                                    }
 
-                    htmlDesglose += `
+                                    htmlDesglose += `
                             </div>
                         </details>
                     `;
-                });
+                                });
 
-                htmlDesglose += `</div>`;
-                contenedor.innerHTML = htmlDesglose;
+                                htmlDesglose += `</div>`;
+                                contenedor.innerHTML = htmlDesglose;
 
-                // Listener independiente para desplegar el detalle de cada factura individual
-                document.querySelectorAll('.btn-desplegar-detalle').forEach(btn => {
-                    btn.addEventListener('click', (e) => {
-                        const facturaId = e.target.getAttribute('data-id');
-                        const filaDetalle = document.getElementById(`detalle-factura-${facturaId}`);
+                                // Listener independiente para desplegar el detalle de cada factura individual
+                                document.querySelectorAll('.btn-desplegar-detalle').forEach(btn => {
+                                    btn.addEventListener('click', (e) => {
+                                        const facturaId = e.target.getAttribute('data-id');
+                                        const filaDetalle = document.getElementById(`detalle-factura-${facturaId}`);
 
-                        if (filaDetalle.style.display === 'none') {
-                            filaDetalle.style.display = 'table-row';
-                            e.target.textContent = 'Ocultar ▲';
-                            e.target.style.backgroundColor = '#475569';
-                        } else {
-                            filaDetalle.style.display = 'none';
-                            e.target.textContent = 'Ver Detalle ▼';
-                            e.target.style.backgroundColor = '#2563eb';
-                        }
-                    });
-                });
+                                        if (filaDetalle.style.display === 'none') {
+                                            filaDetalle.style.display = 'table-row';
+                                            e.target.textContent = 'Ocultar ▲';
+                                            e.target.style.backgroundColor = '#475569';
+                                        } else {
+                                            filaDetalle.style.display = 'none';
+                                            e.target.textContent = 'Ver Detalle ▼';
+                                            e.target.style.backgroundColor = '#2563eb';
+                                        }
+                                    });
+                                });
 
-            })
-            .catch(err => {
-                console.error('Error al cargar ventas:', err);
-                document.getElementById('contenedor-desglose-metodos').innerHTML = '<p style="padding: 15px; color: #f87171; text-align: center;">Error al cargar el reporte de ventas.</p>';
-            });
-    }
+                            })
+                            .catch(err => {
+                                console.error('Error al cargar ventas:', err);
+                                document.getElementById('contenedor-desglose-metodos').innerHTML = '<p style="padding: 15px; color: #f87171; text-align: center;">Error al cargar el reporte de ventas.</p>';
+                            });
+                    }
 
-    cargarVentasDelDia();
-    break;
+                    cargarVentasDelDia();
+                    break;
 
-             case 'producto-mas-vendido':
-    sectionTitle.textContent = 'Producto Más Vendido';
-    contentBody.innerHTML = `
+                case 'producto-mas-vendido':
+                    sectionTitle.textContent = 'Producto Más Vendido';
+                    contentBody.innerHTML = `
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
             <div class="card">
                 <h3 style="color: #f8fafc; margin-bottom: 10px;">🏆 Producto con mayor demanda</h3>
@@ -1469,106 +1481,106 @@ case 'pos':
         </div>
     `;
 
-    // 1. Producto Estrella General (Histórico)
-    fetch('https://la-micho-heladeria-backend.onrender.com/api/Usuarios/Ventas/ProductoMasVendido')
-        .then(res => res.json())
-        .then(data => {
-            const contenedor = document.getElementById('contenedor-producto-general');
-            const prod = data.producto;
-            if (!prod) {
-                contenedor.innerHTML = '<p style="color: #94a3b8; text-align: center; padding: 15px;">Sin registros.</p>';
-                return;
-            }
-            contenedor.innerHTML = `
+                    // 1. Producto Estrella General (Histórico)
+                    fetch('https://la-micho-heladeria-backend.onrender.com/api/Usuarios/Ventas/ProductoMasVendido')
+                        .then(res => res.json())
+                        .then(data => {
+                            const contenedor = document.getElementById('contenedor-producto-general');
+                            const prod = data.producto;
+                            if (!prod) {
+                                contenedor.innerHTML = '<p style="color: #94a3b8; text-align: center; padding: 15px;">Sin registros.</p>';
+                                return;
+                            }
+                            contenedor.innerHTML = `
                 <div style="background: #0f172a; padding: 18px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.05);">
                     <h4 style="margin: 0 0 6px 0; color: #f8fafc; font-size: 1.1rem;">${prod.nombre}</h4>
                     <p style="margin: 0 0 10px 0; color: #94a3b8; font-size: 0.9rem;">Categoría: ${prod.categoria || 'General'}</p>
                     <p style="margin: 0; font-weight: bold; color: #34d399; font-size: 1rem;">Total histórico: ${data.totalUnidadesVendidas} unidades</p>
                 </div>
             `;
-        })
-        .catch(() => {
-            document.getElementById('contenedor-producto-general').innerHTML = '<p style="color: #f87171; text-align: center; padding: 15px;">Sin datos suficientes.</p>';
-        });
+                        })
+                        .catch(() => {
+                            document.getElementById('contenedor-producto-general').innerHTML = '<p style="color: #f87171; text-align: center; padding: 15px;">Sin datos suficientes.</p>';
+                        });
 
-    // 2. Producto Estrella Diario y Top 5 por fecha
-    function cargarEstrellaDiario(fechaStr = '') {
-        let url = 'https://la-micho-heladeria-backend.onrender.com/api/Usuarios/Ventas/ProductoMasVendidoDiario';
-        if (fechaStr) {
-            url += `?fecha=${fechaStr}`;
-        }
+                    // 2. Producto Estrella Diario y Top 5 por fecha
+                    function cargarEstrellaDiario(fechaStr = '') {
+                        let url = 'https://la-micho-heladeria-backend.onrender.com/api/Usuarios/Ventas/ProductoMasVendidoDiario';
+                        if (fechaStr) {
+                            url += `?fecha=${fechaStr}`;
+                        }
 
-        // Cargar el producto número 1 del día
-        fetch(url)
-            .then(res => {
-                if (!res.ok) throw new Error('Sin ventas');
-                return res.json();
-            })
-            .then(data => {
-                const contenedor = document.getElementById('contenedor-producto-diario');
-                const prod = data.producto;
-                contenedor.innerHTML = `
+                        // Cargar el producto número 1 del día
+                        fetch(url)
+                            .then(res => {
+                                if (!res.ok) throw new Error('Sin ventas');
+                                return res.json();
+                            })
+                            .then(data => {
+                                const contenedor = document.getElementById('contenedor-producto-diario');
+                                const prod = data.producto;
+                                contenedor.innerHTML = `
                     <div style="background: #0f172a; padding: 18px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.05);">
                         <h4 style="margin: 0 0 6px 0; color: #f8fafc; font-size: 1.1rem;">${prod.nombre}</h4>
                         <p style="margin: 0 0 10px 0; color: #94a3b8; font-size: 0.9rem;">Fecha consultada: ${data.fechaConsulta}</p>
                         <p style="margin: 0; font-weight: bold; color: #38bdf8; font-size: 1rem;">Vendidos hoy: ${data.totalUnidadesVendidas} unidades</p>
                     </div>
                 `;
-            })
-            .catch(() => {
-                document.getElementById('contenedor-producto-diario').innerHTML = '<p style="color: #fbbf24; font-size: 0.9rem; text-align: center; padding: 15px;">No hay ventas registradas en esta fecha.</p>';
-            });
+                            })
+                            .catch(() => {
+                                document.getElementById('contenedor-producto-diario').innerHTML = '<p style="color: #fbbf24; font-size: 0.9rem; text-align: center; padding: 15px;">No hay ventas registradas en esta fecha.</p>';
+                            });
 
-        // Cargar el Top 5 de productos del día en formato de barras
-        let urlTop5 = 'https://la-micho-heladeria-backend.onrender.com/api/Usuarios/Ventas/TopProductosDiario'; // (O ajusta la ruta si tu endpoint del top 5 diario tiene otro nombre en C#)
-        if (fechaStr) {
-            urlTop5 += `?fecha=${fechaStr}`;
-        }
+                        // Cargar el Top 5 de productos del día en formato de barras
+                        let urlTop5 = 'https://la-micho-heladeria-backend.onrender.com/api/Usuarios/Ventas/TopProductosDiario'; // (O ajusta la ruta si tu endpoint del top 5 diario tiene otro nombre en C#)
+                        if (fechaStr) {
+                            urlTop5 += `?fecha=${fechaStr}`;
+                        }
 
-        // Nota: Si tu backend usa el endpoint general de ventas por fecha para calcular el top 5 en el cliente, 
-        // aquí lo calculamos directamente de forma limpia consumiendo las ventas de ese día:
-        fetch(`https://la-micho-heladeria-backend.onrender.com/api/Usuarios/Ventas/PorFecha?fecha=${fechaStr}`)
-            .then(res => res.json())
-            .then(ventas => {
-                const contenedorTop5 = document.getElementById('contenedor-top5-diario');
+                        // Nota: Si tu backend usa el endpoint general de ventas por fecha para calcular el top 5 en el cliente, 
+                        // aquí lo calculamos directamente de forma limpia consumiendo las ventas de ese día:
+                        fetch(`https://la-micho-heladeria-backend.onrender.com/api/Usuarios/Ventas/PorFecha?fecha=${fechaStr}`)
+                            .then(res => res.json())
+                            .then(ventas => {
+                                const contenedorTop5 = document.getElementById('contenedor-top5-diario');
 
-                if (!ventas || ventas.length === 0) {
-                    contenedorTop5.innerHTML = '<p style="color: #94a3b8; text-align: center; padding: 15px;">No hay datos de ventas para graficar el Top 5 en esta fecha.</p>';
-                    return;
-                }
+                                if (!ventas || ventas.length === 0) {
+                                    contenedorTop5.innerHTML = '<p style="color: #94a3b8; text-align: center; padding: 15px;">No hay datos de ventas para graficar el Top 5 en esta fecha.</p>';
+                                    return;
+                                }
 
-                // Agrupamos unidades vendidas por producto
-                let productosMap = {};
-                ventas.forEach(v => {
-                    if (v.detalleVenta) {
-                        v.detalleVenta.forEach(det => {
-                            const nombreProd = det.idProductoNavigation ? det.idProductoNavigation.nombre : `Producto #${det.idProducto}`;
-                            if (!productosMap[nombreProd]) {
-                                productosMap[nombreProd] = 0;
-                            }
-                            productosMap[nombreProd] += det.cantidad;
-                        });
-                    }
-                });
+                                // Agrupamos unidades vendidas por producto
+                                let productosMap = {};
+                                ventas.forEach(v => {
+                                    if (v.detalleVenta) {
+                                        v.detalleVenta.forEach(det => {
+                                            const nombreProd = det.idProductoNavigation ? det.idProductoNavigation.nombre : `Producto #${det.idProducto}`;
+                                            if (!productosMap[nombreProd]) {
+                                                productosMap[nombreProd] = 0;
+                                            }
+                                            productosMap[nombreProd] += det.cantidad;
+                                        });
+                                    }
+                                });
 
-                // Convertimos a array y ordenamos de mayor a menor, tomando el Top 5
-                let arrayProductos = Object.keys(productosMap).map(nombre => ({
-                    nombre: nombre,
-                    cantidad: productosMap[nombre]
-                })).sort((a, b) => b.cantidad - a.cantidad).slice(0, 5);
+                                // Convertimos a array y ordenamos de mayor a menor, tomando el Top 5
+                                let arrayProductos = Object.keys(productosMap).map(nombre => ({
+                                    nombre: nombre,
+                                    cantidad: productosMap[nombre]
+                                })).sort((a, b) => b.cantidad - a.cantidad).slice(0, 5);
 
-                if (arrayProductos.length === 0) {
-                    contenedorTop5.innerHTML = '<p style="color: #94a3b8; text-align: center; padding: 15px;">Sin productos vendidos hoy.</p>';
-                    return;
-                }
+                                if (arrayProductos.length === 0) {
+                                    contenedorTop5.innerHTML = '<p style="color: #94a3b8; text-align: center; padding: 15px;">Sin productos vendidos hoy.</p>';
+                                    return;
+                                }
 
-                const maxUnidades = arrayProductos[0].cantidad || 1; // Para calcular el porcentaje de la barra
+                                const maxUnidades = arrayProductos[0].cantidad || 1; // Para calcular el porcentaje de la barra
 
-                let barrasHTML = '<div style="display: flex; flex-direction: column; gap: 14px;">';
-                arrayProductos.forEach((p, index) => {
-                    const porcentaje = Math.round((p.cantidad / maxUnidades) * 100);
-                    
-                    barrasHTML += `
+                                let barrasHTML = '<div style="display: flex; flex-direction: column; gap: 14px;">';
+                                arrayProductos.forEach((p, index) => {
+                                    const porcentaje = Math.round((p.cantidad / maxUnidades) * 100);
+
+                                    barrasHTML += `
                         <div style="background: #0f172a; padding: 12px 15px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05);">
                             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; font-size: 0.95rem;">
                                 <span style="font-weight: 600; color: #f8fafc;"><span style="color: #38bdf8; margin-right: 6px;">#${index + 1}</span> ${p.nombre}</span>
@@ -1579,29 +1591,29 @@ case 'pos':
                             </div>
                         </div>
                     `;
-                });
-                barrasHTML += '</div>';
+                                });
+                                barrasHTML += '</div>';
 
-                contenedorTop5.innerHTML = barrasHTML;
-            })
-            .catch(() => {
-                document.getElementById('contenedor-top5-diario').innerHTML = '<p style="color: #f87171; text-align: center; padding: 15px;">Error al calcular el Top 5 de productos.</p>';
-            });
-    }
+                                contenedorTop5.innerHTML = barrasHTML;
+                            })
+                            .catch(() => {
+                                document.getElementById('contenedor-top5-diario').innerHTML = '<p style="color: #f87171; text-align: center; padding: 15px;">Error al calcular el Top 5 de productos.</p>';
+                            });
+                    }
 
-    setTimeout(() => {
-        const inputFecha = document.getElementById('filtro-fecha-estrella');
-        const fechaLocal = new Date().toLocaleDateString('en-CA');
-        inputFecha.value = fechaLocal;
+                    setTimeout(() => {
+                        const inputFecha = document.getElementById('filtro-fecha-estrella');
+                        const fechaLocal = new Date().toLocaleDateString('en-CA');
+                        inputFecha.value = fechaLocal;
 
-        cargarEstrellaDiario(fechaLocal);
+                        cargarEstrellaDiario(fechaLocal);
 
-        document.getElementById('btn-consultar-dia').addEventListener('click', () => {
-            cargarEstrellaDiario(inputFecha.value);
-        });
-    }, 100);
-    break;
+                        document.getElementById('btn-consultar-dia').addEventListener('click', () => {
+                            cargarEstrellaDiario(inputFecha.value);
+                        });
+                    }, 100);
+                    break;
             }
         });
-    }); 
+    });
 });
