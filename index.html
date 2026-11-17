@@ -1,3 +1,17 @@
+<script>
+    // ==========================================
+// GUARDIÁN DE SESIÓN (Protección de ruta)
+// ==========================================
+const usuarioSesion = localStorage.getItem('usuarioLogueado');
+
+if (!usuarioSesion) {
+    // Si no existe la sesión, redirige al usuario al login de inmediato
+    window.location.href = 'login.html';
+}
+
+</script>
+
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
