@@ -29,6 +29,9 @@ document.addEventListener('DOMContentLoaded', () => {
     let temporizadorInactividad;
     const TIEMPO_INACTIVIDAD_MS = 5 * 60 * 1000; // 5 minutos
 
+    // Asegurarnos de recuperar el usuario actual de forma segura
+    const usuarioActual = JSON.parse(localStorage.getItem('usuarioLogueado')) || { nombreCompleto: "Usuario", email: "" };
+
     function mostrarModalBloqueo() {
         // Evitar duplicar modales si ya está abierto
         if (document.getElementById('modal-bloqueo-inactividad')) return;
@@ -41,8 +44,14 @@ document.addEventListener('DOMContentLoaded', () => {
                         Han pasado 5 minutos sin actividad. Por seguridad, ingresa tu contraseña para continuar, <b>${usuarioActual.nombreCompleto}</b>.
                     </p>
                     <form id="form-desbloqueo" style="display: flex; flex-direction: column; gap: 12px;">
-                        <input type="password" id="input-pass-bloqueo" placeholder="Contraseña actual" required style="padding: 10px; border: 1px solid #cbd5e1; border-radius: 4px; box-sizing: border-box; width: 100%;">
-                        <button type="submit" style="padding: 10px; background-color: #1e293b; color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer;">Desbloquear</button>
+                        
+                        <!-- Contenedor del Input de Contraseña con el Icono Ojo -->
+                        <div style="position: relative; width: 100%;">
+                            <input type="password" id="input-pass-bloqueo" placeholder="Contraseña actual" required style="padding: 10px; padding-right: 40px; border: 1px solid #cbd5e1; border-radius: 4px; box-sizing: border-box; width: 100%;">
+                            <span id="btn-toggle-bloqueo" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); cursor: pointer; font-size: 1.1rem; user-select: none;">👁️</span>
+                        </div>
+
+                        <button type="submit" id="btn-submit-desbloquear" style="padding: 10px; background-color: #1e293b; color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer;">Desbloquear</button>
                         <button type="button" id="btn-forzar-salir" style="padding: 8px; background: none; border: none; color: #dc2626; cursor: pointer; font-size: 0.85rem;">Cerrar sesión actual</button>
                     </form>
                 </div>
@@ -50,9 +59,30 @@ document.addEventListener('DOMContentLoaded', () => {
         `;
         document.body.insertAdjacentHTML('beforeend', modalHTML);
 
+        // --- Lógica del Botón Ojo (Mostrar/Ocultar Contraseña) ---
+        const inputPassBloqueo = document.getElementById('input-pass-bloqueo');
+        const btnToggleBloqueo = document.getElementById('btn-toggle-bloqueo');
+
+        btnToggleBloqueo.addEventListener('click', () => {
+            if (inputPassBloqueo.type === 'password') {
+                inputPassBloqueo.type = 'text';
+                btnToggleBloqueo.textContent = '🙈';
+            } else {
+                inputPassBloqueo.type = 'password';
+                btnToggleBloqueo.textContent = '👁️';
+            }
+        });
+
+        // --- Lógica de Desbloqueo ---
         document.getElementById('form-desbloqueo').addEventListener('submit', (e) => {
             e.preventDefault();
-            const passwordIngresada = document.getElementById('input-pass-bloqueo').value;
+            const passwordIngresada = inputPassBloqueo.value;
+            const btnSubmit = document.getElementById('btn-submit-desbloquear');
+
+            // Feedback visual mientras el servidor de Render despierta
+            btnSubmit.textContent = 'Verificando... (Servidor conectando)';
+            btnSubmit.disabled = true;
+            btnSubmit.style.opacity = '0.7';
 
             // Validar credenciales contra la API de login
             fetch('https://la-micho-heladeria-backend.onrender.com/api/Usuarios/Login', {
@@ -67,10 +97,16 @@ document.addEventListener('DOMContentLoaded', () => {
                     reiniciarTemporizadorInactividad();
                 } else {
                     alert('Contraseña incorrecta. Inténtalo de nuevo.');
+                    btnSubmit.textContent = 'Desbloquear';
+                    btnSubmit.disabled = false;
+                    btnSubmit.style.opacity = '1';
                 }
             })
             .catch(() => {
                 alert('Error de conexión con el servidor al verificar credenciales.');
+                btnSubmit.textContent = 'Desbloquear';
+                btnSubmit.disabled = false;
+                btnSubmit.style.opacity = '1';
             });
         });
 
