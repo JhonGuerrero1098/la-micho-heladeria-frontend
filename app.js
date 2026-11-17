@@ -229,6 +229,9 @@ document.addEventListener('DOMContentLoaded', () => {
                                     idRol: idRol
                                 };
 
+                                // Depuración: JSON que se envía al backend (contraseña oculta)
+                                console.log('Registro de usuario - payload:', { ...nuevoUsuarioData, contrasena: '********' });
+
                                 isSubmitting = true;
                                 btnCrearUsuario.textContent = 'Creando usuario...';
                                 btnCrearUsuario.disabled = true;
