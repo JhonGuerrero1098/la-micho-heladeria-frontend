@@ -1,4 +1,3 @@
-// 1. Validar si el usuario ha iniciado sesión antes de permitir cargar la página
 const usuarioActual = JSON.parse(localStorage.getItem('usuarioLogueado'));
 if (!usuarioActual) {
     // Si no hay sesión activa, redirigir automáticamente al login
@@ -28,9 +27,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- CONFIGURACIÓN DE INACTIVIDAD (5 MINUTOS) ---
     let temporizadorInactividad;
     const TIEMPO_INACTIVIDAD_MS = 5 * 60 * 1000; // 5 minutos
-
-    // Asegurarnos de recuperar el usuario actual de forma segura
-    const usuarioActual = JSON.parse(localStorage.getItem('usuarioLogueado')) || { nombreCompleto: "Usuario", email: "" };
 
     function mostrarModalBloqueo() {
         // Evitar duplicar modales si ya está abierto
@@ -79,12 +75,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const passwordIngresada = inputPassBloqueo.value;
             const btnSubmit = document.getElementById('btn-submit-desbloquear');
 
-            // Feedback visual mientras el servidor de Render despierta
             btnSubmit.textContent = 'Verificando... (Servidor conectando)';
             btnSubmit.disabled = true;
             btnSubmit.style.opacity = '0.7';
 
-            // Validar credenciales contra la API de login
             fetch('https://la-micho-heladeria-backend.onrender.com/api/Usuarios/Login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -92,7 +86,6 @@ document.addEventListener('DOMContentLoaded', () => {
             })
             .then(async res => {
                 if (res.ok) {
-                    // Contraseña correcta: removemos modal y reiniciamos temporizador
                     document.getElementById('modal-bloqueo-inactividad').remove();
                     reiniciarTemporizadorInactividad();
                 } else {
@@ -121,40 +114,31 @@ document.addEventListener('DOMContentLoaded', () => {
         temporizadorInactividad = setTimeout(mostrarModalBloqueo, TIEMPO_INACTIVIDAD_MS);
     }
 
-    // Escuchar eventos de interacción del usuario para medir inactividad
     ['mousemove', 'keydown', 'click', 'scroll', 'touchstart'].forEach(evento => {
         window.addEventListener(evento, reiniciarTemporizadorInactividad, true);
     });
 
-    // Iniciar temporizador al cargar la página
     reiniciarTemporizadorInactividad();
 
-    // Restricciones según el rol al cargar la página (Ocultar opciones del menú lateral)
     if (usuarioActual.idRol === 2) {
         navLinks.forEach(link => {
             const seccion = link.getAttribute('data-section');
-            // Si el rol es cajero, ocultamos Dashboard, Clientes y Producto Más Vendido
             if (seccion === 'dashboard' || seccion === 'clientes' || seccion === 'producto-mas-vendido') {
                 link.parentElement.style.display = 'none'; 
             }
         });
     }
 
-    // Configuración de la navegación del menú 
     navLinks.forEach(link => {
         link.addEventListener('click', (e) => {
             e.preventDefault();
-
-            // Obtener la sección seleccionada
             const section = link.getAttribute('data-section');
 
-            // Bloqueo de seguridad por si intentan forzar la vista por cajero
             if (usuarioActual.idRol === 2 && (section === 'dashboard' || section === 'clientes' || section === 'producto-mas-vendido')) {
                 alert('Acceso denegado. Este módulo está restringido para tu rol.');
                 return;
             }
 
-            // Quitar la clase 'active' de todos los enlaces y ponerla en el presionado
             navLinks.forEach(item => item.classList.remove('active'));
             link.classList.add('active');
 
