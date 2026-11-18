@@ -6,10 +6,12 @@
     <title>Ferreteria</title>
     <link rel="stylesheet" href="colores.css">
     <link rel="stylesheet" href="style.css">
+    <script src="sesion.js"></script>
     <script>
-        // GUARDIÁN DE SESIÓN (Protección de ruta): sin sesión se redirige al login de inmediato
-        if (!localStorage.getItem('usuarioLogueado')) {
-            window.location.href = 'login.html';
+        // GUARDIÁN DE SESIÓN: antes de dibujar nada. Con sesión válida (aunque se recargue con F5)
+        // se queda en el panel; sin sesión o vencida, al login (replace evita volver con "Atrás").
+        if (!Sesion.obtener()) {
+            window.location.replace('login.html');
         }
     </script>
 </head>
@@ -53,22 +55,6 @@
             </section>
         </main>
     </div>
-    <!-- Script de validación de sesión seguro -->
-    <script>
-        try {
-            // Verificamos directamente si existe la clave en el localStorage
-            const usuarioLogueado = localStorage.getItem('usuarioLogueado');
-            
-            if (!usuarioLogueado) {
-                // Si no hay sesión, redirigimos al login de forma limpia
-                window.location.href = './login.html';
-            }
-        } catch (error) {
-            console.error("Error al validar la sesión:", error);
-            window.location.href = './login.html';
-        }
-    </script>
-
     <!-- Script principal de la aplicación -->
     <script src="app.js"></script>
 </body>

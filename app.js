@@ -1,15 +1,7 @@
-// Solo se acepta la sesión si la página se abre justo después de un login exitoso
-// (login.html deja una bandera de un solo uso en sessionStorage).
-// Cualquier otra carga (URL directa, recarga, pestaña nueva) limpia la sesión previa.
-const vieneDeLogin = sessionStorage.getItem('loginReciente') === 'true';
-sessionStorage.removeItem('loginReciente');
-if (!vieneDeLogin) {
-    localStorage.removeItem('usuarioLogueado');
-}
-
-const usuarioActual = JSON.parse(localStorage.getItem('usuarioLogueado'));
+// Arranque: la sesión (sesion.js) se restaura también tras recargar con F5. Solo si no existe o
+// venció se envía al login (replace evita volver con "Atrás").
+const usuarioActual = Sesion.obtener();
 if (!usuarioActual) {
-    // Sin sesión válida: redirigir de inmediato al login (replace evita volver con "Atrás")
     window.location.replace('login.html');
 }
 
@@ -129,8 +121,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (btnCerrarSesion) {
         btnCerrarSesion.addEventListener('click', () => {
             if (confirm('¿Estás seguro de que deseas cerrar sesión?')) {
-                localStorage.removeItem('usuarioLogueado');
-                window.location.href = 'login.html';
+                Sesion.cerrar();
+                window.location.replace('login.html');
             }
         });
     }
@@ -146,6 +138,8 @@ document.addEventListener('DOMContentLoaded', () => {
     function mostrarModalBloqueo() {
         // Evitar duplicar modales si ya está abierto
         if (document.getElementById('modal-bloqueo-inactividad')) return;
+        // Se recuerda el bloqueo para que recargar con F5 no lo salte
+        Sesion.marcarBloqueada(true);
 
         const modalHTML = `
             <div id="modal-bloqueo-inactividad" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(62, 39, 35, 0.85); display: flex; justify-content: center; align-items: center; z-index: 9999;">
@@ -201,6 +195,7 @@ document.addEventListener('DOMContentLoaded', () => {
             })
                 .then(async res => {
                     if (res.ok) {
+                        Sesion.marcarBloqueada(false);
                         document.getElementById('modal-bloqueo-inactividad').remove();
                         reiniciarTemporizadorInactividad();
                     } else {
@@ -219,12 +214,15 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         document.getElementById('btn-forzar-salir').addEventListener('click', () => {
-            localStorage.removeItem('usuarioLogueado');
-            window.location.href = 'login.html';
+            Sesion.cerrar();
+            window.location.replace('login.html');
         });
     }
 
     function reiniciarTemporizadorInactividad() {
+        // Mientras la sesión está bloqueada la actividad no cuenta
+        if (document.getElementById('modal-bloqueo-inactividad')) return;
+        Sesion.renovar(); // la actividad extiende el vencimiento de la sesión
         clearTimeout(temporizadorInactividad);
         temporizadorInactividad = setTimeout(mostrarModalBloqueo, TIEMPO_INACTIVIDAD_MS);
     }
@@ -233,7 +231,19 @@ document.addEventListener('DOMContentLoaded', () => {
         window.addEventListener(evento, reiniciarTemporizadorInactividad, true);
     });
 
-    reiniciarTemporizadorInactividad();
+    // Si se recargó con la sesión bloqueada, se vuelve a pedir la contraseña
+    if (Sesion.estaBloqueada()) {
+        mostrarModalBloqueo();
+    } else {
+        reiniciarTemporizadorInactividad();
+    }
+
+    // Cerrar sesión en otra pestaña también la cierra aquí
+    window.addEventListener('storage', (e) => {
+        if ((e.key === Sesion.CLAVE_USUARIO || e.key === null) && !Sesion.obtener()) {
+            window.location.replace('login.html');
+        }
+    });
 
     if (usuarioActual.idRol === 2) {
         navLinks.forEach(link => {
@@ -255,6 +265,7 @@ document.addEventListener('DOMContentLoaded', () => {
             e.preventDefault();
             const section = link.getAttribute('data-section');
             const miRender = ++contadorRender;
+            Sesion.guardarSeccion(section); // al recargar se vuelve a esta sección
 
             if (usuarioActual.idRol === 2 && (section === 'dashboard' || section === 'clientes' || section === 'producto-mas-vendido')) {
                 alert('Acceso denegado. Este módulo está restringido para tu rol.');
@@ -1850,4 +1861,16 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     });
+
+    // ==========================================
+    // CARGA INICIAL (también tras F5): se abre la última sección visitada, o Inicio, y así se
+    // ejecutan sus peticiones (productos, clientes, POS, ventas...) en lugar de dejar la pantalla
+    // con el mensaje estático de bienvenida.
+    // ==========================================
+    const enlaceVisible = (seccion) => Array.from(navLinks).find(a =>
+        a.getAttribute('data-section') === seccion && a.parentElement.style.display !== 'none');
+    const enlaceInicial = enlaceVisible(Sesion.seccionGuardada()) || enlaceVisible('Inicio');
+    if (enlaceInicial) {
+        enlaceInicial.click();
+    }
 });
