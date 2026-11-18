@@ -13,6 +13,11 @@ if (!usuarioActual) {
     window.location.replace('login.html');
 }
 
+// Toda petición a la API se hace sin caché del navegador: después de guardar, los listados
+// se vuelven a pedir y deben traer siempre el estado actual de la base de datos.
+const fetchOriginal = window.fetch.bind(window);
+window.fetch = (recurso, opciones = {}) => fetchOriginal(recurso, { cache: 'no-store', ...opciones });
+
 // Lee una respuesta fetch de forma segura: el backend .NET puede responder con JSON,
 // texto plano o cuerpo vacío. Nunca lanza error por formato; devuelve { ok, texto, datos }.
 async function leerRespuesta(res) {
@@ -334,7 +339,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     let categoriasGlobal = [];
                     function cargarCategoriasDatalist() {
-                        fetch('https://la-micho-heladeria-backend.onrender.com/api/Categorias')
+                        return fetch('https://la-micho-heladeria-backend.onrender.com/api/Categorias')
                             .then(res => res.json())
                             .then(categorias => {
                                 categoriasGlobal = categorias;
@@ -353,7 +358,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
 
                     function cargarInventario() {
-                        fetch('https://la-micho-heladeria-backend.onrender.com/api/Productos')
+                        return fetch('https://la-micho-heladeria-backend.onrender.com/api/Productos')
                             .then(response => response.json())
                             .then(productos => {
                                 const contenedor = document.getElementById('contenedor-tabla');
@@ -437,8 +442,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                             })
                                                 .then(response => {
                                                     if (response.ok) {
-                                                        alert('¡Producto eliminado con éxito!');
-                                                        cargarInventario();
+                                                        cargarInventario().then(() => alert('¡Producto eliminado con éxito!'));
                                                     } else {
                                                         alert('No se pudo eliminar el producto (puede estar asociado a ventas registradas).');
                                                     }
@@ -476,20 +480,19 @@ document.addEventListener('DOMContentLoaded', () => {
                                         body: JSON.stringify({ nombreCategoria: nombreCatTexto })
                                     });
                                     const { ok, texto, datos } = await leerRespuesta(response);
-                                    if (ok) {
-                                        if (datos && datos.id) {
-                                            categoriasGlobal.push(datos);
-                                            return datos.id;
-                                        }
-                                        // El backend no devolvió la categoría en JSON: se recarga la lista y se busca por nombre
-                                        const lista = await leerRespuesta(await fetch('https://la-micho-heladeria-backend.onrender.com/api/Categorias'));
-                                        if (Array.isArray(lista.datos)) {
-                                            categoriasGlobal = lista.datos;
-                                            const creada = categoriasGlobal.find(c => (c.nombreCategoria || c.nombre || '').toLowerCase() === nombreCatTexto.toLowerCase());
-                                            if (creada) return creada.id;
-                                        }
-                                    } else {
-                                        console.error('Error al crear categoría automáticamente:', texto);
+                                    if (ok && datos && datos.id) {
+                                        categoriasGlobal.push(datos);
+                                        return datos.id;
+                                    }
+                                    if (!ok) {
+                                        console.warn('POST Categoría no exitoso, se busca en la lista actual:', texto);
+                                    }
+                                    // Sin la categoría en la respuesta (o ya existía): se recarga la lista y se busca por nombre
+                                    const lista = await leerRespuesta(await fetch('https://la-micho-heladeria-backend.onrender.com/api/Categorias'));
+                                    if (Array.isArray(lista.datos)) {
+                                        categoriasGlobal = lista.datos;
+                                        const creada = categoriasGlobal.find(c => (c.nombreCategoria || c.nombre || '').toLowerCase() === nombreCatTexto.toLowerCase());
+                                        if (creada) return creada.id;
                                     }
                                 } catch (e) {
                                     console.error('Error al crear categoría automáticamente:', e);
@@ -528,9 +531,8 @@ document.addEventListener('DOMContentLoaded', () => {
                                     .then(({ ok, texto }) => {
                                         if (ok) {
                                             formCrearProd.reset();
-                                            alert('¡Creado con éxito!');
-                                            cargarCategoriasDatalist();
-                                            cargarInventario();
+                                            Promise.all([cargarCategoriasDatalist(), cargarInventario()])
+                                                .then(() => alert('¡Creado con éxito!'));
                                         } else {
                                             alert('Error al crear el producto: ' + texto);
                                         }
@@ -583,11 +585,10 @@ document.addEventListener('DOMContentLoaded', () => {
                                     .then(leerRespuesta)
                                     .then(({ ok, texto }) => {
                                         if (ok) {
-                                            alert(`Producto actualizado con éxito (Anterior: ${stockOriginal} + Agregados: ${cantidadIngresada} = Total: ${stockFinal})`);
                                             document.getElementById('card-formulario-producto').style.display = 'none';
                                             formEditar.reset();
-                                            cargarCategoriasDatalist();
-                                            cargarInventario();
+                                            Promise.all([cargarCategoriasDatalist(), cargarInventario()])
+                                                .then(() => alert(`Producto actualizado con éxito (Anterior: ${stockOriginal} + Agregados: ${cantidadIngresada} = Total: ${stockFinal})`));
                                         } else {
                                             alert('Error al actualizar producto: ' + texto);
                                         }
@@ -646,7 +647,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     let idsClientesEliminados = JSON.parse(localStorage.getItem('clientesEliminadosUI') || '[]');
 
                     function cargarClientes() {
-                        fetch('https://la-micho-heladeria-backend.onrender.com/api/Clientes')
+                        return fetch('https://la-micho-heladeria-backend.onrender.com/api/Clientes')
                             .then(response => response.json())
                             .then(clientes => {
                                 // Filtramos para excluir permanentemente de la vista aquellos cuyo ID esté en la lista de eliminados
@@ -796,8 +797,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                     .then(({ ok, texto }) => {
                                         if (ok) {
                                             formCliente.reset();
-                                            cargarClientes();
-                                            alert('¡Creado con éxito!');
+                                            cargarClientes().then(() => alert('¡Creado con éxito!'));
                                         } else {
                                             alert('Error: ' + texto);
                                         }
@@ -839,10 +839,9 @@ document.addEventListener('DOMContentLoaded', () => {
                                     .then(leerRespuesta)
                                     .then(({ ok, texto }) => {
                                         if (ok) {
-                                            alert('¡Cliente actualizado con éxito!');
                                             document.getElementById('card-formulario-cliente').style.display = 'none';
                                             formEditarCliente.reset();
-                                            cargarClientes();
+                                            cargarClientes().then(() => alert('¡Cliente actualizado con éxito!'));
                                         } else {
                                             alert('Error al actualizar: ' + texto);
                                         }
@@ -950,18 +949,24 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
 
                     function cargarDatosPOS() {
-                        fetch('https://la-micho-heladeria-backend.onrender.com/api/Productos')
+                        const productos = fetch('https://la-micho-heladeria-backend.onrender.com/api/Productos')
                             .then(res => res.json())
                             .then(data => {
-                                productosGlobal = data;
-                                renderizarDatalistProductos(productosGlobal);
-                            });
+                                if (Array.isArray(data)) {
+                                    productosGlobal = data;
+                                    renderizarDatalistProductos(productosGlobal);
+                                }
+                            })
+                            .catch(err => console.error('Error al recargar productos del POS:', err));
 
-                        fetch('https://la-micho-heladeria-backend.onrender.com/api/Clientes')
+                        const clientes = fetch('https://la-micho-heladeria-backend.onrender.com/api/Clientes')
                             .then(res => res.json())
                             .then(data => {
-                                clientesGlobal = data;
-                            });
+                                if (Array.isArray(data)) clientesGlobal = data;
+                            })
+                            .catch(err => console.error('Error al recargar clientes del POS:', err));
+
+                        return Promise.all([productos, clientes]);
                     }
 
                     cargarDatosPOS();
@@ -1253,29 +1258,49 @@ document.addEventListener('DOMContentLoaded', () => {
                                 }))
                             };
 
+                            // Evita el doble clic mientras Render responde (el segundo envío daba 409 aunque la venta ya estaba guardada)
+                            btnProcesar.disabled = true;
+
                             fetch('https://la-micho-heladeria-backend.onrender.com/api/Ventas', {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json' },
                                 body: JSON.stringify(ventaData)
                             })
-                                .then(response => {
-                                    if (response.ok) {
-                                        alert(`¡Venta procesada con éxito!\nMétodo: ${metodoSeleccionado}\nCambio a devolver: $${cambio.toFixed(2)}`);
-                                        carrito = [];
-                                        inputMontoPago.value = '';
-                                        actualizarCarritoUI();
-                                        cargarDatosPOS();
-                                        clienteSeleccionadoIdInput.value = '';
-                                        infoClienteContainer.style.display = 'none';
-                                        formNuevoClientePos.style.display = 'none';
-                                        inputBusquedaCedula.value = '';
-                                        inputBusquedaCedula.disabled = false;
-                                        btnBuscarCliente.disabled = false;
-                                    } else {
-                                        response.text().then(err => alert('Error al procesar la venta: ' + err));
+                                .then(leerRespuesta)
+                                .then(async ({ ok, texto, datos }) => {
+                                    if (!ok) {
+                                        alert('Error al procesar la venta: ' + ((datos && datos.mensaje) || texto));
+                                        return;
                                     }
+
+                                    // Stock ya descontado que devuelve el backend: se aplica al instante
+                                    if (datos && Array.isArray(datos.productosActualizados)) {
+                                        datos.productosActualizados.forEach(({ id, stock }) => {
+                                            const prod = productosGlobal.find(p => p.id === id);
+                                            if (prod) prod.stock = stock;
+                                        });
+                                        renderizarDatalistProductos(productosGlobal);
+                                    }
+
+                                    carrito = [];
+                                    inputMontoPago.value = '';
+                                    actualizarCarritoUI();
+                                    clienteSeleccionadoIdInput.value = '';
+                                    infoClienteContainer.style.display = 'none';
+                                    formNuevoClientePos.style.display = 'none';
+                                    inputBusquedaCedula.value = '';
+                                    inputBusquedaCedula.disabled = false;
+                                    btnBuscarCliente.disabled = false;
+
+                                    // Se espera la recarga desde el servidor antes del alert (que bloquea la página)
+                                    await cargarDatosPOS();
+                                    alert(`¡Venta procesada con éxito!\nMétodo: ${metodoSeleccionado}\nCambio a devolver: $${cambio.toFixed(2)}`);
                                 })
-                                .catch(error => console.error('Error en POST Venta:', error));
+                                .catch(error => {
+                                    console.error('Error en POST Venta:', error);
+                                    alert('No se pudo contactar al servidor. Verifique en Ventas del Día si la venta quedó registrada antes de reintentar.');
+                                })
+                                .finally(() => { btnProcesar.disabled = false; });
                         });
                     }, 100);
                     break;
