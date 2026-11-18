@@ -61,6 +61,26 @@ async function leerRespuesta(res) {
     return { ok: res.ok, texto, datos };
 }
 
+// Evita envíos dobles: mientras la petición está en curso el botón queda deshabilitado (con un texto
+// de "en curso") y cualquier envío adicional se ignora. Devuelve la función que lo libera, o null si
+// ya había un envío en curso.
+function bloquearEnvio(elemento, boton, textoEnCurso = 'Guardando...') {
+    if (elemento.dataset.enviando === 'true') return null;
+    elemento.dataset.enviando = 'true';
+    const textoOriginal = boton ? boton.textContent : '';
+    if (boton) {
+        boton.disabled = true;
+        boton.textContent = textoEnCurso;
+    }
+    return () => {
+        elemento.dataset.enviando = 'false';
+        if (boton) {
+            boton.disabled = false;
+            boton.textContent = textoOriginal;
+        }
+    };
+}
+
 // Texto para mostrar al usuario: el "mensaje" del backend si viene en JSON, si no el texto crudo
 function mensajeDe({ texto, datos }, porDefecto = 'Error desconocido.') {
     return (datos && datos.mensaje) || texto || porDefecto;
@@ -224,10 +244,17 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // Cada vez que se dibuja una sección se incrementa este contador. Los enlaces de eventos se hacen en
+    // un setTimeout; si mientras tanto se dibujó otra sección (p. ej. doble clic en el menú), el
+    // temporizador viejo no hace nada. Antes ambos temporizadores enlazaban el MISMO formulario y cada
+    // "Guardar" enviaba dos peticiones: la primera creaba el registro y la segunda respondía "ya existe".
+    let contadorRender = 0;
+
     navLinks.forEach(link => {
         link.addEventListener('click', (e) => {
             e.preventDefault();
             const section = link.getAttribute('data-section');
+            const miRender = ++contadorRender;
 
             if (usuarioActual.idRol === 2 && (section === 'dashboard' || section === 'clientes' || section === 'producto-mas-vendido')) {
                 alert('Acceso denegado. Este módulo está restringido para tu rol.');
@@ -277,6 +304,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     contentBody.innerHTML = contenidoDashboard;
 
                     setTimeout(() => {
+
+                        if (miRender !== contadorRender) return; // Se dibujó otra sección: no enlazar dos veces
                         const formCrearUsuario = document.getElementById('form-crear-usuario-admin');
                         if (formCrearUsuario) {
                             const btnCrearUsuario = formCrearUsuario.querySelector('button[type="submit"]');
@@ -527,6 +556,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     cargarInventario();
 
                     setTimeout(() => {
+
+                        if (miRender !== contadorRender) return; // Se dibujó otra sección: no enlazar dos veces
                         // Función auxiliar para obtener el ID de la categoría por texto (o crearla automáticamente si no existe)
                         async function obtenerOidCrearCategoria(nombreCatTexto) {
                             if (!nombreCatTexto) return null;
@@ -571,9 +602,14 @@ document.addEventListener('DOMContentLoaded', () => {
                         if (formCrearProd) {
                             formCrearProd.addEventListener('submit', async (e) => {
                                 e.preventDefault();
+                                // Bloqueo inmediato (antes de crear la categoría, que también es asíncrona)
+                                const liberar = bloquearEnvio(formCrearProd, formCrearProd.querySelector('button[type="submit"]'));
+                                if (!liberar) return;
+
                                 const textoCat = document.getElementById('nuevo-prod-categoria').value.trim();
                                 const idCat = await obtenerOidCrearCategoria(textoCat);
                                 if (!idCat) {
+                                    liberar();
                                     alert('No se pudo obtener ni crear la categoría "' + textoCat + '". El producto no se registró.');
                                     return;
                                 }
@@ -593,16 +629,23 @@ document.addEventListener('DOMContentLoaded', () => {
                                     body: JSON.stringify(nuevoProductoData)
                                 })
                                     .then(leerRespuesta)
-                                    .then(({ ok, texto }) => {
+                                    .then(respuesta => {
+                                        const { ok, datos } = respuesta;
                                         if (ok) {
                                             formCrearProd.reset();
+                                            // yaExistia: era un envío repetido del mismo producto; ya está guardado
+                                            const aviso = datos && datos.yaExistia ? datos.mensaje : '¡Creado con éxito!';
                                             Promise.all([cargarCategoriasDatalist(), cargarInventario()])
-                                                .then(() => alert('¡Creado con éxito!'));
+                                                .then(() => alert(aviso));
                                         } else {
-                                            alert('Error al crear el producto: ' + texto);
+                                            alert('Error al crear el producto: ' + mensajeDe(respuesta));
                                         }
                                     })
-                                    .catch(err => console.error('Error en POST Producto:', err));
+                                    .catch(err => {
+                                        console.error('Error en POST Producto:', err);
+                                        alert('No se pudo contactar al servidor. Revise el inventario antes de reintentar.');
+                                    })
+                                    .finally(liberar);
                             });
                         }
 
@@ -620,6 +663,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         if (formEditar) {
                             formEditar.addEventListener('submit', async (e) => {
                                 e.preventDefault();
+                                const liberar = bloquearEnvio(formEditar, formEditar.querySelector('button[type="submit"]'));
+                                if (!liberar) return;
                                 const id = document.getElementById('edit-id').value;
                                 const stockOriginal = parseInt(document.getElementById('edit-stock-original').value) || 0;
                                 const cantidadIngresada = parseInt(document.getElementById('edit-stock').value) || 0;
@@ -628,6 +673,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 const textoCat = document.getElementById('edit-categoria').value.trim();
                                 const idCat = await obtenerOidCrearCategoria(textoCat);
                                 if (!idCat) {
+                                    liberar();
                                     alert('No se pudo obtener ni crear la categoría "' + textoCat + '". El producto no se actualizó.');
                                     return;
                                 }
@@ -658,7 +704,8 @@ document.addEventListener('DOMContentLoaded', () => {
                                             alert('Error al actualizar producto: ' + texto);
                                         }
                                     })
-                                    .catch(err => console.error('Error en PUT Producto:', err));
+                                    .catch(err => console.error('Error en PUT Producto:', err))
+                                    .finally(liberar);
                             });
                         }
                     }, 100);
@@ -826,6 +873,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     cargarClientes();
 
                     setTimeout(() => {
+
+                        if (miRender !== contadorRender) return; // Se dibujó otra sección: no enlazar dos veces
                         // Buscador en tiempo real por Cédula o Nombre
                         const inputBusqueda = document.getElementById('input-buscar-cliente-tabla');
                         if (inputBusqueda) {
@@ -844,6 +893,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         if (formCliente) {
                             formCliente.addEventListener('submit', (e) => {
                                 e.preventDefault();
+                                const liberar = bloquearEnvio(formCliente, formCliente.querySelector('button[type="submit"]'));
+                                if (!liberar) return;
 
                                 const nuevoCliente = {
                                     nombre: document.getElementById('nombre-cliente').value,
@@ -862,12 +913,18 @@ document.addEventListener('DOMContentLoaded', () => {
                                     .then(respuesta => {
                                         if (respuesta.ok) {
                                             formCliente.reset();
-                                            cargarClientes().then(() => alert('¡Creado con éxito!'));
+                                            // yaExistia: era un envío repetido del mismo cliente; ya está guardado
+                                            const aviso = respuesta.datos && respuesta.datos.yaExistia ? respuesta.datos.mensaje : '¡Creado con éxito!';
+                                            cargarClientes().then(() => alert(aviso));
                                         } else {
                                             alert(mensajeDe(respuesta));
                                         }
                                     })
-                                    .catch(err => console.error('Error en POST:', err));
+                                    .catch(err => {
+                                        console.error('Error en POST Cliente:', err);
+                                        alert('No se pudo contactar al servidor. Revise la lista de clientes antes de reintentar.');
+                                    })
+                                    .finally(liberar);
                             });
                         }
 
@@ -885,6 +942,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         if (formEditarCliente) {
                             formEditarCliente.addEventListener('submit', (e) => {
                                 e.preventDefault();
+                                const liberar = bloquearEnvio(formEditarCliente, formEditarCliente.querySelector('button[type="submit"]'));
+                                if (!liberar) return;
                                 const id = document.getElementById('edit-cliente-id').value;
 
                                 const clienteActualizado = {
@@ -911,7 +970,8 @@ document.addEventListener('DOMContentLoaded', () => {
                                             alert('Error al actualizar: ' + mensajeDe(respuesta));
                                         }
                                     })
-                                    .catch(err => console.error('Error en PUT Cliente:', err));
+                                    .catch(err => console.error('Error en PUT Cliente:', err))
+                                    .finally(liberar);
                             });
                         }
                     }, 100);
@@ -1040,6 +1100,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     cargarDatosPOS();
 
                     setTimeout(() => {
+
+                        if (miRender !== contadorRender) return; // Se dibujó otra sección: no enlazar dos veces
                         const btnAgregar = document.getElementById('btn-agregar-carrito');
                         const btnProcesar = document.getElementById('btn-procesar-venta');
                         const btnCancelarVenta = document.getElementById('btn-cancelar-venta');
@@ -1127,6 +1189,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
                             const nuevoCliente = { nombre, cedula, telefono, email, direccion };
 
+                            const liberar = bloquearEnvio(btnRegistrarRapido, btnRegistrarRapido, 'Registrando...');
+                            if (!liberar) return;
+
                             fetch('https://la-micho-heladeria-backend.onrender.com/api/Clientes', {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json' },
@@ -1152,17 +1217,19 @@ document.addEventListener('DOMContentLoaded', () => {
                                     formNuevoClientePos.style.display = 'none';
                                     if (cliente && cliente.id) {
                                         clienteSeleccionadoIdInput.value = cliente.id;
-                                        textoClienteEncontrado.textContent = `✔ Cliente ${yaExistia ? 'Existente' : 'Registrado'} y Seleccionado: ${cliente.nombre} (Cédula: ${cliente.cedula})`;
+                                        textoClienteEncontrado.textContent = `✔ Cliente ${yaExistia || (datos && datos.yaExistia) ? 'Existente' : 'Registrado'} y Seleccionado: ${cliente.nombre} (Cédula: ${cliente.cedula})`;
                                         infoClienteContainer.style.display = 'block';
                                         inputBusquedaCedula.disabled = true;
                                         btnBuscarCliente.disabled = true;
                                     }
-                                    alert(yaExistia ? `${datos.mensaje}\nSe seleccionó ese cliente para la venta.` : '¡Creado con éxito!');
+                                    const yaRegistrado = yaExistia || (datos && datos.yaExistia);
+                                    alert(yaRegistrado ? `${datos.mensaje}\nSe seleccionó ese cliente para la venta.` : '¡Creado con éxito!');
                                 })
                                 .catch(err => {
                                     console.error('Error:', err);
                                     alert('No se pudo registrar el cliente: ' + err.message);
-                                });
+                                })
+                                .finally(liberar);
                         });
 
                         btnAgregar.addEventListener('click', () => {
@@ -1767,6 +1834,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
 
                     setTimeout(() => {
+
+                        if (miRender !== contadorRender) return; // Se dibujó otra sección: no enlazar dos veces
                         const inputFecha = document.getElementById('filtro-fecha-estrella');
                         const fechaLocal = new Date().toLocaleDateString('en-CA');
                         inputFecha.value = fechaLocal;
