@@ -61,6 +61,11 @@ async function leerRespuesta(res) {
     return { ok: res.ok, texto, datos };
 }
 
+// Texto para mostrar al usuario: el "mensaje" del backend si viene en JSON, si no el texto crudo
+function mensajeDe({ texto, datos }, porDefecto = 'Error desconocido.') {
+    return (datos && datos.mensaje) || texto || porDefecto;
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     // Si se está redirigiendo al login, no inicializar el dashboard
     if (!usuarioActual) return;
@@ -824,12 +829,12 @@ document.addEventListener('DOMContentLoaded', () => {
                                     body: JSON.stringify(nuevoCliente)
                                 })
                                     .then(leerRespuesta)
-                                    .then(({ ok, texto }) => {
-                                        if (ok) {
+                                    .then(respuesta => {
+                                        if (respuesta.ok) {
                                             formCliente.reset();
                                             cargarClientes().then(() => alert('¡Creado con éxito!'));
                                         } else {
-                                            alert('Error: ' + texto);
+                                            alert(mensajeDe(respuesta));
                                         }
                                     })
                                     .catch(err => console.error('Error en POST:', err));
@@ -867,13 +872,13 @@ document.addEventListener('DOMContentLoaded', () => {
                                     body: JSON.stringify(clienteActualizado)
                                 })
                                     .then(leerRespuesta)
-                                    .then(({ ok, texto }) => {
-                                        if (ok) {
+                                    .then(respuesta => {
+                                        if (respuesta.ok) {
                                             document.getElementById('card-formulario-cliente').style.display = 'none';
                                             formEditarCliente.reset();
                                             cargarClientes().then(() => alert('¡Cliente actualizado con éxito!'));
                                         } else {
-                                            alert('Error al actualizar: ' + texto);
+                                            alert('Error al actualizar: ' + mensajeDe(respuesta));
                                         }
                                     })
                                     .catch(err => console.error('Error en PUT Cliente:', err));
@@ -1097,28 +1102,32 @@ document.addEventListener('DOMContentLoaded', () => {
                                 headers: { 'Content-Type': 'application/json' },
                                 body: JSON.stringify(nuevoCliente)
                             })
-                                .then(leerRespuesta)
-                                .then(({ ok, texto }) => {
-                                    if (!ok) {
-                                        throw new Error(texto || 'Error al registrar el cliente.');
+                                .then(async res => ({ ...(await leerRespuesta(res)), status: res.status }))
+                                .then(respuesta => {
+                                    const { ok, status, datos } = respuesta;
+                                    // 409 con "data": la cédula ya estaba registrada; se usa ese cliente
+                                    const yaExistia = status === 409 && datos && datos.data && datos.data.id;
+                                    if (!ok && !yaExistia) {
+                                        throw new Error(mensajeDe(respuesta, 'Error al registrar el cliente.'));
                                     }
-                                    return fetch('https://la-micho-heladeria-backend.onrender.com/api/Clientes').then(leerRespuesta);
-                                })
-                                .then(({ datos }) => {
-                                    clientesGlobal = Array.isArray(datos) ? datos : clientesGlobal;
-                                    const clienteCreado = clientesGlobal.find(c => c.cedula === cedula);
-                                    // Limpiar los campos del registro rápido solo tras el éxito
+
+                                    const cliente = datos && datos.data;
+                                    if (cliente && cliente.id && !clientesGlobal.some(c => c.id === cliente.id)) {
+                                        clientesGlobal.push(cliente);
+                                    }
+
+                                    // Limpiar los campos del registro rápido
                                     ['pos-nuevo-nombre', 'pos-nuevo-telefono', 'pos-nuevo-email', 'pos-nuevo-direccion']
                                         .forEach(idCampo => { document.getElementById(idCampo).value = ''; });
                                     formNuevoClientePos.style.display = 'none';
-                                    if (clienteCreado) {
-                                        clienteSeleccionadoIdInput.value = clienteCreado.id;
-                                        textoClienteEncontrado.textContent = `✔ Cliente Registrado y Seleccionado: ${clienteCreado.nombre} (Cédula: ${clienteCreado.cedula})`;
+                                    if (cliente && cliente.id) {
+                                        clienteSeleccionadoIdInput.value = cliente.id;
+                                        textoClienteEncontrado.textContent = `✔ Cliente ${yaExistia ? 'Existente' : 'Registrado'} y Seleccionado: ${cliente.nombre} (Cédula: ${cliente.cedula})`;
                                         infoClienteContainer.style.display = 'block';
                                         inputBusquedaCedula.disabled = true;
                                         btnBuscarCliente.disabled = true;
                                     }
-                                    alert('¡Creado con éxito!');
+                                    alert(yaExistia ? `${datos.mensaje}\nSe seleccionó ese cliente para la venta.` : '¡Creado con éxito!');
                                 })
                                 .catch(err => {
                                     console.error('Error:', err);
