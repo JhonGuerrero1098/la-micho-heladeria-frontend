@@ -18,6 +18,36 @@ if (!usuarioActual) {
 const fetchOriginal = window.fetch.bind(window);
 window.fetch = (recurso, opciones = {}) => fetchOriginal(recurso, { cache: 'no-store', ...opciones });
 
+// UUID v4 para la cabecera X-Idempotency-Key. crypto.randomUUID solo existe en contextos seguros
+// (https o localhost); si no está, se arma con crypto.getRandomValues.
+function generarUUID() {
+    if (window.crypto && typeof window.crypto.randomUUID === 'function') {
+        return window.crypto.randomUUID();
+    }
+    const b = window.crypto.getRandomValues(new Uint8Array(16));
+    b[6] = (b[6] & 0x0f) | 0x40; // versión 4
+    b[8] = (b[8] & 0x3f) | 0x80; // variante RFC 4122
+    const h = Array.from(b, x => x.toString(16).padStart(2, '0')).join('');
+    return `${h.slice(0, 8)}-${h.slice(8, 12)}-${h.slice(12, 16)}-${h.slice(16, 20)}-${h.slice(20)}`;
+}
+
+// fetch con reintentos automáticos SOLO ante fallos de red o 502/503/504 (Render dormido o
+// Supabase lento). Es seguro reintentar un POST de venta porque lleva la misma clave de
+// idempotencia: si el primer envío sí se guardó, el backend devuelve esa misma venta.
+async function fetchConReintentos(url, opciones, esperasMs = [1500, 3000]) {
+    for (let intento = 0; ; intento++) {
+        try {
+            const res = await fetch(url, opciones);
+            if (![502, 503, 504].includes(res.status) || intento >= esperasMs.length) {
+                return res;
+            }
+        } catch (err) {
+            if (intento >= esperasMs.length) throw err;
+        }
+        await new Promise(resolver => setTimeout(resolver, esperasMs[intento]));
+    }
+}
+
 // Lee una respuesta fetch de forma segura: el backend .NET puede responder con JSON,
 // texto plano o cuerpo vacío. Nunca lanza error por formato; devuelve { ok, texto, datos }.
 async function leerRespuesta(res) {
@@ -937,6 +967,9 @@ document.addEventListener('DOMContentLoaded', () => {
     `;
 
                     let carrito = [];
+                    // Venta enviada pero sin confirmación exitosa: { huella, clave }. Mientras el contenido de la
+                    // venta no cambie se reutiliza la misma clave, así un reenvío nunca crea una venta duplicada.
+                    let ventaPendiente = null;
                     let productosGlobal = [];
                     let clientesGlobal = [];
 
@@ -1258,20 +1291,35 @@ document.addEventListener('DOMContentLoaded', () => {
                                 }))
                             };
 
-                            // Evita el doble clic mientras Render responde (el segundo envío daba 409 aunque la venta ya estaba guardada)
+                            // Clave de idempotencia: UUID nuevo por cada venta distinta. Si esta misma venta ya se
+                            // envió y no se confirmó (fallo de red), se reutiliza su clave para no duplicarla.
+                            const cuerpoVenta = JSON.stringify(ventaData);
+                            if (!ventaPendiente || ventaPendiente.huella !== cuerpoVenta) {
+                                ventaPendiente = { huella: cuerpoVenta, clave: generarUUID() };
+                            }
+
+                            // Evita el doble clic mientras Render responde
                             btnProcesar.disabled = true;
 
-                            fetch('https://la-micho-heladeria-backend.onrender.com/api/Ventas', {
+                            fetchConReintentos('https://la-micho-heladeria-backend.onrender.com/api/Ventas', {
                                 method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify(ventaData)
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'X-Idempotency-Key': ventaPendiente.clave
+                                },
+                                body: cuerpoVenta
                             })
-                                .then(leerRespuesta)
-                                .then(async ({ ok, texto, datos }) => {
+                                .then(async res => ({ ...(await leerRespuesta(res)), status: res.status, repetida: res.headers.get('Idempotent-Replayed') === 'true' }))
+                                .then(async ({ ok, status, texto, datos, repetida }) => {
                                     if (!ok) {
+                                        // 422: la clave ya se usó con otros datos; la próxima vez se genera una nueva
+                                        if (status === 422) ventaPendiente = null;
                                         alert('Error al procesar la venta: ' + ((datos && datos.mensaje) || texto));
                                         return;
                                     }
+
+                                    // Venta confirmada: la siguiente venta usará una clave nueva
+                                    ventaPendiente = null;
 
                                     // Stock ya descontado que devuelve el backend: se aplica al instante
                                     if (datos && Array.isArray(datos.productosActualizados)) {
@@ -1294,11 +1342,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
                                     // Se espera la recarga desde el servidor antes del alert (que bloquea la página)
                                     await cargarDatosPOS();
-                                    alert(`¡Venta procesada con éxito!\nMétodo: ${metodoSeleccionado}\nCambio a devolver: $${cambio.toFixed(2)}`);
+                                    const avisoRepetida = repetida ? '\n(Esta venta ya se había registrado: no se duplicó.)' : '';
+                                    alert(`¡Venta procesada con éxito!\nMétodo: ${metodoSeleccionado}\nCambio a devolver: $${cambio.toFixed(2)}${avisoRepetida}`);
                                 })
                                 .catch(error => {
                                     console.error('Error en POST Venta:', error);
-                                    alert('No se pudo contactar al servidor. Verifique en Ventas del Día si la venta quedó registrada antes de reintentar.');
+                                    alert('No se pudo confirmar la venta por un problema de conexión.\nPresione "Procesar" de nuevo sin cambiar el carrito: se reenviará con la misma clave y, si ya se había guardado, no se duplicará.');
                                 })
                                 .finally(() => { btnProcesar.disabled = false; });
                         });
