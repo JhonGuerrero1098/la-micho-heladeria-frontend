@@ -100,3 +100,194 @@ body {
     margin-bottom: 10px;
     color: #f8fafc;
 }
+/* =========================================================
+   RESPONSIVE: celulares, tablets y escritorio
+   ========================================================= */
+html {
+    -webkit-text-size-adjust: 100%;
+}
+.app-container {
+    height: 100vh;
+    height: 100dvh; /* altura real en celulares (sin la barra del navegador) */
+}
+.sidebar {
+    flex-shrink: 0;
+    overflow-y: auto;
+}
+.sidebar-footer {
+    padding: 20px;
+    margin-top: auto;
+}
+.main-content {
+    min-width: 0; /* permite que tablas/formularios se ajusten en lugar de empujar el layout */
+}
+.topbar-izq {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+}
+.topbar h2 {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Botón hamburguesa y fondo del cajón: ocultos en escritorio */
+.btn-menu {
+    display: none;
+    background: rgba(56, 189, 248, 0.1);
+    border: 1px solid rgba(56, 189, 248, 0.3);
+    color: #38bdf8;
+    font-size: 1.4rem;
+    line-height: 1;
+    width: 42px;
+    height: 42px;
+    border-radius: 8px;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+.sidebar-overlay {
+    display: none;
+}
+
+/* Rejillas de secciones */
+.grid-pos {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+    gap: 20px;
+}
+.grid-2 {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px;
+}
+.grid-pos > *,
+.grid-2 > * {
+    min-width: 0;
+}
+
+/* Tablas: desplazamiento horizontal dentro de su tarjeta, nunca desbordan la página */
+.tabla-responsive {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+.tabla-responsive table {
+    min-width: 640px;
+}
+.tabla-responsive th {
+    white-space: nowrap;
+}
+.tabla-responsive td button {
+    white-space: nowrap;
+    margin: 2px;
+}
+
+/* Medios e inputs nunca más anchos que su contenedor */
+img, input, select, textarea, button {
+    max-width: 100%;
+}
+summary {
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+/* ---------- Tablets y celulares: menú lateral tipo cajón ---------- */
+@media (max-width: 900px) {
+    .btn-menu {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        width: min(280px, 82vw);
+        z-index: 1000;
+        transform: translateX(-100%);
+        transition: transform 0.3s ease;
+    }
+    .menu-abierto .sidebar {
+        transform: translateX(0);
+    }
+    .sidebar-overlay {
+        display: block;
+        position: fixed;
+        inset: 0;
+        background: rgba(2, 6, 23, 0.6);
+        z-index: 999;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s ease;
+    }
+    .menu-abierto .sidebar-overlay {
+        opacity: 1;
+        pointer-events: auto;
+    }
+    .nav-links li a:hover,
+    .nav-links li a.active {
+        transform: none;
+    }
+
+    .topbar {
+        padding: 0 16px;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+    }
+    .content-body {
+        padding: 20px 16px;
+    }
+    .grid-pos {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+/* ---------- Celulares ---------- */
+@media (max-width: 600px) {
+    .topbar {
+        height: 60px;
+    }
+    .topbar h2 {
+        font-size: 1.1rem;
+    }
+    .user-profile {
+        display: none;
+    }
+    .content-body {
+        padding: 14px 10px;
+    }
+    .card {
+        padding: 16px;
+    }
+    .card:hover {
+        transform: none;
+    }
+    .grid-2 {
+        grid-template-columns: minmax(0, 1fr);
+    }
+    /* Formularios de inventario/clientes: un campo por fila (los estilos en línea fijan min-width) */
+    .content-body form[style*="flex-wrap"] > * {
+        flex: 1 1 100% !important;
+        min-width: 0 !important;
+        width: 100%;
+    }
+    /* Inputs a 16px evitan el zoom automático de iOS al enfocarlos */
+    .content-body input,
+    .content-body select,
+    .content-body textarea {
+        font-size: 16px;
+    }
+    .fila-agregar-producto > div {
+        flex-basis: 100% !important;
+    }
+    .fila-agregar-producto > input[type="number"] {
+        flex: 0 0 90px;
+    }
+    .fila-agregar-producto > button {
+        flex: 1;
+    }
+}

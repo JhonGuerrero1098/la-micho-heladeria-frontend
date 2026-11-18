@@ -71,6 +71,36 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!usuarioActual) return;
 
     const navLinks = document.querySelectorAll('.nav-links a');
+
+    // ==========================================
+    // MENÚ LATERAL RESPONSIVE (cajón en pantallas < 900px)
+    // ==========================================
+    const btnMenu = document.getElementById('btn-menu');
+    const overlayMenu = document.getElementById('sidebar-overlay');
+
+    function abrirCerrarMenu(abrir) {
+        document.body.classList.toggle('menu-abierto', abrir);
+        if (btnMenu) {
+            btnMenu.setAttribute('aria-expanded', String(abrir));
+            btnMenu.setAttribute('aria-label', abrir ? 'Cerrar menú' : 'Abrir menú');
+        }
+    }
+
+    if (btnMenu) {
+        btnMenu.addEventListener('click', () => abrirCerrarMenu(!document.body.classList.contains('menu-abierto')));
+    }
+    if (overlayMenu) {
+        overlayMenu.addEventListener('click', () => abrirCerrarMenu(false));
+    }
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') abrirCerrarMenu(false);
+    });
+    // Al elegir una sección en el celular, el menú se cierra para mostrar el contenido
+    navLinks.forEach(link => link.addEventListener('click', () => abrirCerrarMenu(false)));
+    // Si la pantalla vuelve a ser ancha, se quita el estado de cajón abierto
+    window.matchMedia('(min-width: 901px)').addEventListener('change', (e) => {
+        if (e.matches) abrirCerrarMenu(false);
+    });
     const sectionTitle = document.getElementById('section-title');
     const contentBody = document.querySelector('.content-body');
 
@@ -404,7 +434,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 }
 
                                 let tablaHTML = `
-                    <div style="overflow-x: auto;">
+                    <div class="tabla-responsive">
                         <table style="width:100%; border-collapse: collapse; margin-top:5px; text-align: left; color: #f3f4f6;">
                             <thead>
                                 <tr style="background-color:#020617; color: #38bdf8; border-bottom: 2px solid rgba(56, 189, 248, 0.2);">
@@ -704,7 +734,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         }
 
                         let tablaHTML = `
-            <div style="overflow-x: auto;">
+            <div class="tabla-responsive">
                 <table style="width:100%; border-collapse: collapse; margin-top:5px; text-align: left; color: #f3f4f6;">
                     <thead>
                         <tr style="background-color:#020617; color: #38bdf8; border-bottom: 2px solid rgba(56, 189, 248, 0.2);">
@@ -890,11 +920,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     sectionTitle.textContent = 'Punto de Venta (POS)';
                     // [MODIFICACIÓN UI/UX]: Rejilla POS adaptada a modo oscuro, contrastes correctos y tarjetas estilizadas
                     contentBody.innerHTML = `
-        <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 20px;">
+        <div class="grid-pos">
             <div class="card">
                 <h3 style="color: #f8fafc;">Seleccionar Productos</h3>
-                <div style="display: flex; gap: 10px; margin-top: 15px; margin-bottom: 15px;">
-                    <div style="flex: 2; position: relative;">
+                <div class="fila-agregar-producto" style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 15px; margin-bottom: 15px;">
+                    <div style="flex: 2 1 220px; position: relative;">
                         <input type="text" id="input-buscar-producto" placeholder="Escribe para buscar por iniciales o nombre..." list="lista-sugerencias-productos" style="width: 100%; padding: 10px 12px; background: #0f172a; border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; color: #f3f4f6; box-sizing: border-box; outline: none;">
                         <datalist id="lista-sugerencias-productos">
                         </datalist>
@@ -904,7 +934,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <button type="button" id="btn-agregar-carrito" style="padding: 10px 18px; background: linear-gradient(135deg, #2563eb, #38bdf8); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">Agregar</button>
                 </div>
                 <h4 style="color: #f8fafc; margin-top: 20px; margin-bottom: 10px;">Carrito de Compras</h4>
-                <div style="overflow-x: auto;">
+                <div class="tabla-responsive">
                     <table style="width:100%; border-collapse: collapse; text-align: left; color: #f3f4f6;">
                         <thead>
                             <tr style="background-color:#020617; color: #38bdf8; border-bottom: 2px solid rgba(56, 189, 248, 0.2);">
@@ -1506,7 +1536,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 <span>${metodo} <span style="font-size: 0.85rem; color: #94a3b8; font-weight: normal; margin-left: 8px;">(${listaVentas.length} transacciones)</span></span>
                                 <span style="color: ${colorBorde}; font-size: 1.05rem;">$${subtotalMetodo.toFixed(2)} ▼</span>
                             </summary>
-                            <div style="padding: 15px 20px; border-top: 1px solid rgba(255,255,255,0.05); background: #0b0f19;">
+                            <div class="tabla-responsive" style="padding: 15px 20px; border-top: 1px solid rgba(255,255,255,0.05); background: #0b0f19;">
                     `;
 
                                     if (listaVentas.length === 0) {
@@ -1594,7 +1624,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 case 'producto-mas-vendido':
                     sectionTitle.textContent = 'Producto Más Vendido';
                     contentBody.innerHTML = `
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+        <div class="grid-2" style="margin-bottom: 20px;">
             <div class="card">
                 <h3 style="color: #f8fafc; margin-bottom: 10px;">🏆 Producto con mayor demanda</h3>
                 <div id="contenedor-producto-general" style="margin-top: 15px;">
