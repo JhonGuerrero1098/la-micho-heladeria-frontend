@@ -1,0 +1,46 @@
+/* =========================================================
+   PALETA DE COLORES (identidad visual)
+   Se carga antes de style.css (index.html) y en login.html.
+   Contrastes WCAG verificados sobre blanco/#F8F9FA:
+     chocolate 13.8:1 · texto suave 7.6:1 · rosa texto 5.9:1
+     blanco sobre rosa botón 4.85:1 (AA) · blanco sobre #FF3399 solo 3.4:1,
+     por eso #FF3399 se usa en acentos/bordes y el relleno de botones es un tono más profundo.
+   ========================================================= */
+:root {
+    /* Marca */
+    --color-primario: #FF3399;          /* Rosa neón: acentos, bordes, menú activo */
+    --color-primario-boton: #D81B74;    /* Relleno de botones principales (texto blanco AA) */
+    --color-primario-hover: #AD1457;
+    --color-primario-texto: #C2185B;    /* Rosa para textos/enlaces sobre blanco */
+    --color-primario-suave: #FFE3F1;    /* Fondos tenues, filas al pasar el mouse */
+
+    --color-secundario: #AEE2FF;        /* Azul cielo pastel: botones secundarios, encabezados de tabla */
+    --color-secundario-hover: #8DD3FA;
+    --color-secundario-fuerte: #3FA7DE; /* Indicadores/bordes visibles sobre blanco */
+    --color-secundario-suave: #E8F6FF;
+
+    --color-acento: #FFC107;            /* Amarillo brillante: avisos, destacados */
+    --color-acento-suave: #FFF6D6;
+
+    /* Texto */
+    --color-texto: #3E2723;             /* Marrón chocolate: títulos y texto principal */
+    --color-texto-suave: #6D4C41;       /* Etiquetas y textos secundarios */
+    --color-texto-invertido: #FFFFFF;
+
+    /* Superficies */
+    --color-fondo: #F8F9FA;             /* Fondo general, inputs */
+    --color-superficie: #FFFFFF;        /* Tarjetas, barra superior, menú */
+    --color-borde: #E9E1DE;
+    --color-borde-fuerte: #D7CCC8;
+
+    /* Estados */
+    --color-exito: #2E7D32;
+    --color-exito-suave: #E8F5E9;
+    --color-peligro: #C62828;
+    --color-advertencia-texto: #8A5A00;
+
+    /* Sombras */
+    --sombra-tarjeta: 0 1px 2px rgba(62, 39, 35, 0.06), 0 4px 16px rgba(62, 39, 35, 0.06);
+    --sombra-tarjeta-hover: 0 2px 4px rgba(62, 39, 35, 0.08), 0 10px 24px rgba(255, 51, 153, 0.12);
+    --sombra-boton: 0 4px 12px rgba(216, 27, 116, 0.25);
+}

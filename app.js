@@ -128,22 +128,22 @@ document.addEventListener('DOMContentLoaded', () => {
         if (document.getElementById('modal-bloqueo-inactividad')) return;
 
         const modalHTML = `
-            <div id="modal-bloqueo-inactividad" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.95); display: flex; justify-content: center; align-items: center; z-index: 9999;">
+            <div id="modal-bloqueo-inactividad" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(62, 39, 35, 0.85); display: flex; justify-content: center; align-items: center; z-index: 9999;">
                 <div style="background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.4); width: 100%; max-width: 400px; text-align: center;">
-                    <h3 style="color: #1e293b; margin-bottom: 10px;">Sesión Bloqueada por Inactividad</h3>
-                    <p style="color: #64748b; font-size: 0.9rem; margin-bottom: 20px;">
+                    <h3 style="color: var(--color-texto); margin-bottom: 10px;">Sesión Bloqueada por Inactividad</h3>
+                    <p style="color: var(--color-texto-suave); font-size: 0.9rem; margin-bottom: 20px;">
                         Han pasado 5 minutos sin actividad. Por seguridad, ingresa tu contraseña para continuar, <b>${usuarioActual.nombreCompleto}</b>.
                     </p>
                     <form id="form-desbloqueo" style="display: flex; flex-direction: column; gap: 12px;">
                         
                         <!-- Contenedor del Input de Contraseña con el Icono Ojo -->
                         <div style="position: relative; width: 100%;">
-                            <input type="password" id="input-pass-bloqueo" placeholder="Contraseña actual" required style="padding: 10px; padding-right: 40px; border: 1px solid #cbd5e1; border-radius: 4px; box-sizing: border-box; width: 100%;">
+                            <input type="password" id="input-pass-bloqueo" placeholder="Contraseña actual" required style="padding: 10px; padding-right: 40px; border: 1px solid var(--color-borde-fuerte); border-radius: 4px; box-sizing: border-box; width: 100%;">
                             <span id="btn-toggle-bloqueo" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); cursor: pointer; font-size: 1.1rem; user-select: none;">👁️</span>
                         </div>
 
-                        <button type="submit" id="btn-submit-desbloquear" style="padding: 10px; background-color: #1e293b; color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer;">Desbloquear</button>
-                        <button type="button" id="btn-forzar-salir" style="padding: 8px; background: none; border: none; color: #dc2626; cursor: pointer; font-size: 0.85rem;">Cerrar sesión actual</button>
+                        <button type="submit" id="btn-submit-desbloquear" style="padding: 10px; background-color: var(--color-primario-boton); color: var(--color-texto-invertido); border: none; border-radius: 4px; font-weight: bold; cursor: pointer;">Desbloquear</button>
+                        <button type="button" id="btn-forzar-salir" style="padding: 8px; background: none; border: none; color: var(--color-peligro); cursor: pointer; font-size: 0.85rem;">Cerrar sesión actual</button>
                     </form>
                 </div>
             </div>
@@ -256,20 +256,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
                         contenidoDashboard += `
                 <div class="card" style="max-width: 600px; margin: 0 auto;">
-                    <h3 style="color: #f8fafc; margin-bottom: 10px;">Crear Nuevo Usuario</h3>
-                    <p style="color: #94a3b8; font-size: 0.9rem; margin-bottom: 15px; line-height: 1.5;">
+                    <h3 style="color: var(--color-texto); margin-bottom: 10px;">Crear Nuevo Usuario</h3>
+                    <p style="color: var(--color-texto-suave); font-size: 0.9rem; margin-bottom: 15px; line-height: 1.5;">
                         ${usuarioActual.idRol === 3 ? 'Como Superusuario, puedes registrar cuentas para administradores o cajeros.' : 'Como Administrador, puedes registrar cuentas para los cajeros.'}
                     </p>
                     <form id="form-crear-usuario-admin" style="display: flex; flex-direction: column; gap: 12px;">
-                        <input type="text" id="nuevo-nombre" placeholder="Nombre completo" required style="padding: 10px 12px; background: #0f172a; border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; color: #f3f4f6; outline: none;">
-                        <input type="email" id="nuevo-correo" placeholder="Correo electrónico" required style="padding: 10px 12px; background: #0f172a; border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; color: #f3f4f6; outline: none;">
-                        <input type="password" id="nuevo-contrasena" placeholder="Contraseña (Mín. 8 caracteres, 1 may., 1 núm., 1 especial)" required style="padding: 10px 12px; background: #0f172a; border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; color: #f3f4f6; outline: none;">
-                        <label for="nuevo-rol" style="font-weight: 500; color: #94a3b8; font-size: 0.9rem;">Asignar Rol:</label>
-                        <select id="nuevo-rol" required style="padding: 10px 12px; background: #0f172a; border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; color: #f3f4f6; outline: none;">
-                            <option value="" style="background: #111827; color: #f3f4f6;">Seleccione un rol...</option>
+                        <input type="text" id="nuevo-nombre" placeholder="Nombre completo" required style="padding: 10px 12px; background: var(--color-fondo); border: 1px solid var(--color-borde); border-radius: 6px; color: var(--color-texto); outline: none;">
+                        <input type="email" id="nuevo-correo" placeholder="Correo electrónico" required style="padding: 10px 12px; background: var(--color-fondo); border: 1px solid var(--color-borde); border-radius: 6px; color: var(--color-texto); outline: none;">
+                        <input type="password" id="nuevo-contrasena" placeholder="Contraseña (Mín. 8 caracteres, 1 may., 1 núm., 1 especial)" required style="padding: 10px 12px; background: var(--color-fondo); border: 1px solid var(--color-borde); border-radius: 6px; color: var(--color-texto); outline: none;">
+                        <label for="nuevo-rol" style="font-weight: 500; color: var(--color-texto-suave); font-size: 0.9rem;">Asignar Rol:</label>
+                        <select id="nuevo-rol" required style="padding: 10px 12px; background: var(--color-fondo); border: 1px solid var(--color-borde); border-radius: 6px; color: var(--color-texto); outline: none;">
+                            <option value="" style="background: var(--color-superficie); color: var(--color-texto);">Seleccione un rol...</option>
                             ${opcionesRolHTML}
                         </select>
-                        <button type="submit" style="padding: 11px 15px; background: linear-gradient(135deg, #16a34a, #22c55e); color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; margin-top: 5px; box-shadow: 0 4px 12px rgba(22, 163, 74, 0.3);">Crear Usuario</button>
+                        <button type="submit" style="padding: 11px 15px; background: var(--color-primario-boton); color: var(--color-texto-invertido); border: none; border-radius: 6px; font-weight: 600; cursor: pointer; margin-top: 5px; box-shadow: var(--sombra-boton);">Crear Usuario</button>
                     </form>
                 </div>
                 `;
@@ -355,49 +355,49 @@ document.addEventListener('DOMContentLoaded', () => {
                     contentBody.innerHTML = `
         <!-- FORMULARIO PARA AGREGAR NUEVO PRODUCTO -->
         <div class="card" style="margin-bottom: 20px;">
-            <h3 style="color: #f8fafc; margin-bottom: 10px;">Registrar Nuevo Producto</h3>
+            <h3 style="color: var(--color-texto); margin-bottom: 10px;">Registrar Nuevo Producto</h3>
             <form id="form-crear-producto-inventario" style="display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap;">
-                <input type="text" id="nuevo-prod-nombre" placeholder="Nombre del producto" required style="padding: 10px 12px; flex: 1; min-width: 150px; background: #0f172a; border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; color: #f3f4f6; outline: none;">
-                <input type="number" id="nuevo-prod-precio" placeholder="Precio" step="0.01" required style="padding: 10px 12px; flex: 1; min-width: 120px; background: #0f172a; border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; color: #f3f4f6; outline: none;">
-                <input type="number" id="nuevo-prod-stock" placeholder="Stock / Cantidad inicial" min="0" required style="padding: 10px 12px; flex: 1; min-width: 120px; background: #0f172a; border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; color: #f3f4f6; outline: none;">
+                <input type="text" id="nuevo-prod-nombre" placeholder="Nombre del producto" required style="padding: 10px 12px; flex: 1; min-width: 150px; background: var(--color-fondo); border: 1px solid var(--color-borde); border-radius: 6px; color: var(--color-texto); outline: none;">
+                <input type="number" id="nuevo-prod-precio" placeholder="Precio" step="0.01" required style="padding: 10px 12px; flex: 1; min-width: 120px; background: var(--color-fondo); border: 1px solid var(--color-borde); border-radius: 6px; color: var(--color-texto); outline: none;">
+                <input type="number" id="nuevo-prod-stock" placeholder="Stock / Cantidad inicial" min="0" required style="padding: 10px 12px; flex: 1; min-width: 120px; background: var(--color-fondo); border: 1px solid var(--color-borde); border-radius: 6px; color: var(--color-texto); outline: none;">
                 
                 <!-- Input de texto con datalist para escribir o autocompletar la categoría -->
                 <div style="flex: 1; min-width: 150px; position: relative;">
-                    <input type="text" id="nuevo-prod-categoria" placeholder="Escribe la categoría..." list="lista-categorias-sugeridas" required style="width: 100%; padding: 10px 12px; background: #0f172a; border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; color: #f3f4f6; outline: none; box-sizing: border-box;">
+                    <input type="text" id="nuevo-prod-categoria" placeholder="Escribe la categoría..." list="lista-categorias-sugeridas" required style="width: 100%; padding: 10px 12px; background: var(--color-fondo); border: 1px solid var(--color-borde); border-radius: 6px; color: var(--color-texto); outline: none; box-sizing: border-box;">
                     <datalist id="lista-categorias-sugeridas"></datalist>
                 </div>
 
-                <input type="text" id="nuevo-prod-descripcion" placeholder="Descripción (Opcional)" style="padding: 10px 12px; flex: 1; min-width: 200px; background: #0f172a; border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; color: #f3f4f6; outline: none;">
-                <button type="submit" style="padding: 10px 18px; background: linear-gradient(135deg, #2563eb, #38bdf8); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">Guardar Producto</button>
+                <input type="text" id="nuevo-prod-descripcion" placeholder="Descripción (Opcional)" style="padding: 10px 12px; flex: 1; min-width: 200px; background: var(--color-fondo); border: 1px solid var(--color-borde); border-radius: 6px; color: var(--color-texto); outline: none;">
+                <button type="submit" style="padding: 10px 18px; background: var(--color-primario-boton); color: var(--color-texto-invertido); border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">Guardar Producto</button>
             </form>
         </div>
 
         <!-- FORMULARIO DESPLEGABLE PARA EDITAR PRODUCTO -->
-        <div class="card" id="card-formulario-producto" style="margin-bottom: 20px; display: none; background-color: #0f172a; border: 1px solid rgba(56, 189, 248, 0.3);">
-            <h3 id="titulo-form-productos" style="color: #f8fafc; margin-bottom: 10px;">Editar Producto</h3>
+        <div class="card" id="card-formulario-producto" style="margin-bottom: 20px; display: none; background-color: var(--color-fondo); border: 1px solid var(--color-secundario);">
+            <h3 id="titulo-form-productos" style="color: var(--color-texto); margin-bottom: 10px;">Editar Producto</h3>
             <form id="form-editar-producto" style="display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap;">  
                 <input type="hidden" id="edit-id">
                 <input type="hidden" id="edit-stock-original">
-                <input type="text" id="edit-nombre" placeholder="Nombre del producto" required style="padding: 10px 12px; flex: 1; min-width: 150px; background: #111827; border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; color: #f3f4f6; outline: none;">
-                <input type="number" id="edit-precio" placeholder="Precio" step="0.01" required style="padding: 10px 12px; flex: 1; min-width: 120px; background: #111827; border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; color: #f3f4f6; outline: none;">
-                <input type="number" id="edit-stock" placeholder="Stock a agregar" required style="padding: 10px 12px; flex: 1; min-width: 100px; background: #111827; border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; color: #f3f4f6; outline: none;">
+                <input type="text" id="edit-nombre" placeholder="Nombre del producto" required style="padding: 10px 12px; flex: 1; min-width: 150px; background: var(--color-superficie); border: 1px solid var(--color-borde); border-radius: 6px; color: var(--color-texto); outline: none;">
+                <input type="number" id="edit-precio" placeholder="Precio" step="0.01" required style="padding: 10px 12px; flex: 1; min-width: 120px; background: var(--color-superficie); border: 1px solid var(--color-borde); border-radius: 6px; color: var(--color-texto); outline: none;">
+                <input type="number" id="edit-stock" placeholder="Stock a agregar" required style="padding: 10px 12px; flex: 1; min-width: 100px; background: var(--color-superficie); border: 1px solid var(--color-borde); border-radius: 6px; color: var(--color-texto); outline: none;">
                 
                 <!-- Input de texto con datalist para edición -->
                 <div style="flex: 1; min-width: 150px; position: relative;">
-                    <input type="text" id="edit-categoria" placeholder="Escribe la categoría..." list="lista-categorias-sugeridas" required style="width: 100%; padding: 10px 12px; background: #111827; border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; color: #f3f4f6; outline: none; box-sizing: border-box;">
+                    <input type="text" id="edit-categoria" placeholder="Escribe la categoría..." list="lista-categorias-sugeridas" required style="width: 100%; padding: 10px 12px; background: var(--color-superficie); border: 1px solid var(--color-borde); border-radius: 6px; color: var(--color-texto); outline: none; box-sizing: border-box;">
                 </div>
 
-                <input type="text" id="edit-descripcion" placeholder="Descripción del producto" style="padding: 10px 12px; flex: 1; min-width: 200px; background: #111827; border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; color: #f3f4f6; outline: none;">
-                <button type="submit" style="padding: 10px 18px; background: linear-gradient(135deg, #16a34a, #22c55e); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; box-shadow: 0 4px 12px rgba(22, 163, 74, 0.3);">Actualizar</button>
-                <button type="button" id="btn-cancelar-edit" style="padding: 10px 18px; background-color: #475569; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">Cancelar</button>
+                <input type="text" id="edit-descripcion" placeholder="Descripción del producto" style="padding: 10px 12px; flex: 1; min-width: 200px; background: var(--color-superficie); border: 1px solid var(--color-borde); border-radius: 6px; color: var(--color-texto); outline: none;">
+                <button type="submit" style="padding: 10px 18px; background: var(--color-primario-boton); color: var(--color-texto-invertido); border: none; border-radius: 6px; cursor: pointer; font-weight: 600; box-shadow: var(--sombra-boton);">Actualizar</button>
+                <button type="button" id="btn-cancelar-edit" style="padding: 10px 18px; background-color: var(--color-superficie); color: var(--color-texto); border: 1px solid var(--color-borde-fuerte); border-radius: 6px; cursor: pointer; font-weight: 600;">Cancelar</button>
             </form>
         </div>
 
         <!-- TABLA DE PRODUCTOS EN STOCK -->
         <div class="card">
-            <h3 style="color: #f8fafc; margin-bottom: 10px;">Productos en stock</h3>
+            <h3 style="color: var(--color-texto); margin-bottom: 10px;">Productos en stock</h3>
             <div id="contenedor-tabla">
-                <p style="padding: 15px; color: #94a3b8; text-align: center;">Cargando productos...</p>
+                <p style="padding: 15px; color: var(--color-texto-suave); text-align: center;">Cargando productos...</p>
             </div>
         </div>
     `;
@@ -429,15 +429,15 @@ document.addEventListener('DOMContentLoaded', () => {
                                 const contenedor = document.getElementById('contenedor-tabla');
 
                                 if (productos.length === 0) {
-                                    contenedor.innerHTML = '<p style="padding: 15px; text-align: center; color: #94a3b8;">No hay productos registrados.</p>';
+                                    contenedor.innerHTML = '<p style="padding: 15px; text-align: center; color: var(--color-texto-suave);">No hay productos registrados.</p>';
                                     return;
                                 }
 
                                 let tablaHTML = `
                     <div class="tabla-responsive">
-                        <table style="width:100%; border-collapse: collapse; margin-top:5px; text-align: left; color: #f3f4f6;">
+                        <table style="width:100%; border-collapse: collapse; margin-top:5px; text-align: left; color: var(--color-texto);">
                             <thead>
-                                <tr style="background-color:#020617; color: #38bdf8; border-bottom: 2px solid rgba(56, 189, 248, 0.2);">
+                                <tr style="background-color: var(--color-secundario); color: var(--color-texto); border-bottom: 2px solid var(--color-primario);">
                                     <th style="padding: 12px;">ID</th>
                                     <th style="padding: 12px;">Nombre</th>
                                     <th style="padding: 12px;">Precio</th>
@@ -450,20 +450,20 @@ document.addEventListener('DOMContentLoaded', () => {
                 `;
 
                                 productos.forEach(prod => {
-                                    const estiloStock = prod.stock <= 10 ? 'color: #f87171; font-weight: bold;' : 'color: #f3f4f6;';
+                                    const estiloStock = prod.stock <= 10 ? 'color: var(--color-peligro); font-weight: bold;' : 'color: var(--color-texto);';
                                     const nombreCategoria = prod.idCategoriaNavigation ? (prod.idCategoriaNavigation.nombreCategoria || prod.idCategoriaNavigation.nombre) : 'General';
 
                                     tablaHTML += `
-                        <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.05); transition: background 0.2s;">
-                            <td style="padding: 12px; color: #94a3b8;">${prod.id}</td>
+                        <tr style="border-bottom: 1px solid var(--color-borde); transition: background 0.2s;">
+                            <td style="padding: 12px; color: var(--color-texto-suave);">${prod.id}</td>
                             <td style="padding: 12px; font-weight: 500;">${prod.nombre}</td>
-                            <td style="padding: 12px; color: #34d399;">$${prod.precio}</td>
+                            <td style="padding: 12px; color: var(--color-exito);">$${prod.precio}</td>
                             <td style="padding: 12px; ${estiloStock}">${prod.stock}</td>
-                            <td style="padding: 12px; color: #94a3b8;">${nombreCategoria}</td>
+                            <td style="padding: 12px; color: var(--color-texto-suave);">${nombreCategoria}</td>
                             <td style="padding: 12px; text-align: center;">
                                 <div style="display: flex; gap: 6px; justify-content: center;">
-                                    <button class="btn-editar" data-id="${prod.id}" data-nombre="${prod.nombre}" data-precio="${prod.precio}" data-stock="${prod.stock}" data-catanombre="${nombreCategoria !== 'General' ? nombreCategoria : ''}" data-descripcion="${prod.descripcion || ''}" style="padding: 6px 12px; background-color: #2563eb; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 500;">Editar</button>
-                                    <button class="btn-eliminar-producto" data-id="${prod.id}" style="padding: 6px 12px; background-color: #dc2626; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 500;">Eliminar</button>
+                                    <button class="btn-editar" data-id="${prod.id}" data-nombre="${prod.nombre}" data-precio="${prod.precio}" data-stock="${prod.stock}" data-catanombre="${nombreCategoria !== 'General' ? nombreCategoria : ''}" data-descripcion="${prod.descripcion || ''}" style="padding: 6px 12px; background-color: var(--color-secundario); color: var(--color-texto); border: none; border-radius: 6px; cursor: pointer; font-weight: 500;">Editar</button>
+                                    <button class="btn-eliminar-producto" data-id="${prod.id}" style="padding: 6px 12px; background-color: var(--color-peligro); color: var(--color-texto-invertido); border: none; border-radius: 6px; cursor: pointer; font-weight: 500;">Eliminar</button>
                                 </div>
                             </td>
                         </tr>
@@ -519,7 +519,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             })
                             .catch(error => {
                                 console.error('Error al cargar los productos:', error);
-                                document.getElementById('contenedor-tabla').innerHTML = '<p style="padding: 15px; color: #f87171; text-align: center;">Error al cargar los productos.</p>';
+                                document.getElementById('contenedor-tabla').innerHTML = '<p style="padding: 15px; color: var(--color-peligro); text-align: center;">Error al cargar los productos.</p>';
                             });
                     }
 
@@ -668,41 +668,41 @@ document.addEventListener('DOMContentLoaded', () => {
                     sectionTitle.textContent = 'Gestión de Clientes';
                     contentBody.innerHTML = `
         <!-- FORMULARIO DESPLEGABLE (ACORDEÓN) PARA EDITAR CLIENTE -->
-        <div class="card" id="card-formulario-cliente" style="margin-bottom: 20px; display: none; background-color: #0f172a; border: 1px solid rgba(56, 189, 248, 0.3);">
-            <h3 id="titulo-form-clientes" style="color: #f8fafc; margin-bottom: 10px;">Editar Cliente</h3>
+        <div class="card" id="card-formulario-cliente" style="margin-bottom: 20px; display: none; background-color: var(--color-fondo); border: 1px solid var(--color-secundario);">
+            <h3 id="titulo-form-clientes" style="color: var(--color-texto); margin-bottom: 10px;">Editar Cliente</h3>
             <form id="form-editar-cliente" style="display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap;">  
                 <input type="hidden" id="edit-cliente-id">
-                <input type="text" id="edit-cliente-nombre" placeholder="Nombre completo" required style="padding: 10px 12px; flex: 1; min-width: 150px; background: #111827; border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; color: #f3f4f6; outline: none;">
-                <input type="text" id="edit-cliente-cedula" placeholder="Cédula" required style="padding: 10px 12px; flex: 1; min-width: 130px; background: #111827; border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; color: #f3f4f6; outline: none;">   
-                <input type="text" id="edit-cliente-telefono" placeholder="Número de teléfono" required style="padding: 10px 12px; flex: 1; min-width: 130px; background: #111827; border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; color: #f3f4f6; outline: none;">
-                <input type="email" id="edit-cliente-email" placeholder="Correo electrónico" style="padding: 10px 12px; flex: 1; min-width: 180px; background: #111827; border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; color: #f3f4f6; outline: none;">
-                <input type="text" id="edit-cliente-direccion" placeholder="Dirección" required style="padding: 10px 12px; flex: 1; min-width: 150px; background: #111827; border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; color: #f3f4f6; outline: none;">
-                <button type="submit" style="padding: 10px 18px; background: linear-gradient(135deg, #16a34a, #22c55e); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; box-shadow: 0 4px 12px rgba(22, 163, 74, 0.3);">Actualizar</button>
-                <button type="button" id="btn-cancelar-edit-cliente" style="padding: 10px 18px; background-color: #475569; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">Cancelar</button>
+                <input type="text" id="edit-cliente-nombre" placeholder="Nombre completo" required style="padding: 10px 12px; flex: 1; min-width: 150px; background: var(--color-superficie); border: 1px solid var(--color-borde); border-radius: 6px; color: var(--color-texto); outline: none;">
+                <input type="text" id="edit-cliente-cedula" placeholder="Cédula" required style="padding: 10px 12px; flex: 1; min-width: 130px; background: var(--color-superficie); border: 1px solid var(--color-borde); border-radius: 6px; color: var(--color-texto); outline: none;">   
+                <input type="text" id="edit-cliente-telefono" placeholder="Número de teléfono" required style="padding: 10px 12px; flex: 1; min-width: 130px; background: var(--color-superficie); border: 1px solid var(--color-borde); border-radius: 6px; color: var(--color-texto); outline: none;">
+                <input type="email" id="edit-cliente-email" placeholder="Correo electrónico" style="padding: 10px 12px; flex: 1; min-width: 180px; background: var(--color-superficie); border: 1px solid var(--color-borde); border-radius: 6px; color: var(--color-texto); outline: none;">
+                <input type="text" id="edit-cliente-direccion" placeholder="Dirección" required style="padding: 10px 12px; flex: 1; min-width: 150px; background: var(--color-superficie); border: 1px solid var(--color-borde); border-radius: 6px; color: var(--color-texto); outline: none;">
+                <button type="submit" style="padding: 10px 18px; background: var(--color-primario-boton); color: var(--color-texto-invertido); border: none; border-radius: 6px; cursor: pointer; font-weight: 600; box-shadow: var(--sombra-boton);">Actualizar</button>
+                <button type="button" id="btn-cancelar-edit-cliente" style="padding: 10px 18px; background-color: var(--color-superficie); color: var(--color-texto); border: 1px solid var(--color-borde-fuerte); border-radius: 6px; cursor: pointer; font-weight: 600;">Cancelar</button>
             </form>
         </div>
 
         <!-- FORMULARIO PARA REGISTRAR NUEVO CLIENTE -->
         <div class="card" style="margin-bottom: 20px;">
-            <h3 style="color: #f8fafc; margin-bottom: 10px;">Registrar nuevo Cliente</h3>
+            <h3 style="color: var(--color-texto); margin-bottom: 10px;">Registrar nuevo Cliente</h3>
             <form id="form-cliente" style="display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap;">
-                <input type="text" id="nombre-cliente" placeholder="Nombre completo" required style="padding: 10px 12px; flex: 1; min-width: 150px; background: #0f172a; border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; color: #f3f4f6; outline: none;">
-                <input type="text" id="cedula-cliente" placeholder="Cédula" required style="padding: 10px 12px; flex: 1; min-width: 150px; background: #0f172a; border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; color: #f3f4f6; outline: none;">   
-                <input type="text" id="telefono-cliente" placeholder="Número de teléfono" required style="padding: 10px 12px; flex: 1; min-width: 150px; background: #0f172a; border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; color: #f3f4f6; outline: none;">
-                <input type="email" id="email-cliente" placeholder="Correo electrónico" style="padding: 10px 12px; flex: 1; min-width: 200px; background: #0f172a; border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; color: #f3f4f6; outline: none;">
-                <input type="text" id="direccion-cliente" placeholder="Dirección" required style="padding: 10px 12px; flex: 1; min-width: 150px; background: #0f172a; border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; color: #f3f4f6; outline: none;">
-                <button type="submit" style="padding: 10px 18px; background: linear-gradient(135deg, #2563eb, #38bdf8); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">Guardar cliente</button>
+                <input type="text" id="nombre-cliente" placeholder="Nombre completo" required style="padding: 10px 12px; flex: 1; min-width: 150px; background: var(--color-fondo); border: 1px solid var(--color-borde); border-radius: 6px; color: var(--color-texto); outline: none;">
+                <input type="text" id="cedula-cliente" placeholder="Cédula" required style="padding: 10px 12px; flex: 1; min-width: 150px; background: var(--color-fondo); border: 1px solid var(--color-borde); border-radius: 6px; color: var(--color-texto); outline: none;">   
+                <input type="text" id="telefono-cliente" placeholder="Número de teléfono" required style="padding: 10px 12px; flex: 1; min-width: 150px; background: var(--color-fondo); border: 1px solid var(--color-borde); border-radius: 6px; color: var(--color-texto); outline: none;">
+                <input type="email" id="email-cliente" placeholder="Correo electrónico" style="padding: 10px 12px; flex: 1; min-width: 200px; background: var(--color-fondo); border: 1px solid var(--color-borde); border-radius: 6px; color: var(--color-texto); outline: none;">
+                <input type="text" id="direccion-cliente" placeholder="Dirección" required style="padding: 10px 12px; flex: 1; min-width: 150px; background: var(--color-fondo); border: 1px solid var(--color-borde); border-radius: 6px; color: var(--color-texto); outline: none;">
+                <button type="submit" style="padding: 10px 18px; background: var(--color-primario-boton); color: var(--color-texto-invertido); border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">Guardar cliente</button>
             </form>
         </div>
 
         <!-- TABLA DE CLIENTES Y FILTRO -->
         <div class="card">
             <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 15px;">
-                <h3 style="margin: 0; color: #f8fafc;">Clientes Registrados</h3>
-                <input type="text" id="input-buscar-cliente-tabla" placeholder="Buscar cliente por nombre o cédula..." style="padding: 10px 12px; width: 280px; background: #0f172a; border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; color: #f3f4f6; outline: none;">
+                <h3 style="margin: 0; color: var(--color-texto);">Clientes Registrados</h3>
+                <input type="text" id="input-buscar-cliente-tabla" placeholder="Buscar cliente por nombre o cédula..." style="padding: 10px 12px; width: 280px; background: var(--color-fondo); border: 1px solid var(--color-borde); border-radius: 6px; color: var(--color-texto); outline: none;">
             </div>
             <div id="contenedor-tabla-clientes">
-                <p style="padding: 15px; color: #94a3b8; text-align: center;">Cargando clientes...</p>
+                <p style="padding: 15px; color: var(--color-texto-suave); text-align: center;">Cargando clientes...</p>
             </div>
         </div>
     `;
@@ -721,7 +721,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             })
                             .catch(error => {
                                 console.error('Error al cargar los clientes:', error);
-                                document.getElementById('contenedor-tabla-clientes').innerHTML = '<p style="padding: 15px; color: #f87171; text-align: center;">Error al cargar los clientes.</p>';
+                                document.getElementById('contenedor-tabla-clientes').innerHTML = '<p style="padding: 15px; color: var(--color-peligro); text-align: center;">Error al cargar los clientes.</p>';
                             });
                     }
 
@@ -729,15 +729,15 @@ document.addEventListener('DOMContentLoaded', () => {
                         const contenedor = document.getElementById('contenedor-tabla-clientes');
 
                         if (clientesAMostrar.length === 0) {
-                            contenedor.innerHTML = '<p style="padding: 15px; text-align: center; color: #94a3b8;">No hay clientes para mostrar.</p>';
+                            contenedor.innerHTML = '<p style="padding: 15px; text-align: center; color: var(--color-texto-suave);">No hay clientes para mostrar.</p>';
                             return;
                         }
 
                         let tablaHTML = `
             <div class="tabla-responsive">
-                <table style="width:100%; border-collapse: collapse; margin-top:5px; text-align: left; color: #f3f4f6;">
+                <table style="width:100%; border-collapse: collapse; margin-top:5px; text-align: left; color: var(--color-texto);">
                     <thead>
-                        <tr style="background-color:#020617; color: #38bdf8; border-bottom: 2px solid rgba(56, 189, 248, 0.2);">
+                        <tr style="background-color: var(--color-secundario); color: var(--color-texto); border-bottom: 2px solid var(--color-primario);">
                             <th style="padding: 12px;">ID</th>
                             <th style="padding: 12px;">Cedula</th>
                             <th style="padding: 12px;">Nombre</th>
@@ -751,16 +751,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
                         clientesAMostrar.forEach(cli => {
                             tablaHTML += `
-                <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.05); transition: background 0.2s;">
-                    <td style="padding: 12px; color: #94a3b8;">${cli.id}</td>
+                <tr style="border-bottom: 1px solid var(--color-borde); transition: background 0.2s;">
+                    <td style="padding: 12px; color: var(--color-texto-suave);">${cli.id}</td>
                     <td style="padding: 12px;">${cli.cedula}</td>
                     <td style="padding: 12px; font-weight: 500;">${cli.nombre}</td>
-                    <td style="padding: 12px; color: #94a3b8;">${cli.telefono || 'N/A'}</td>
-                    <td style="padding: 12px; color: #94a3b8;">${cli.email || 'N/A'}</td>
+                    <td style="padding: 12px; color: var(--color-texto-suave);">${cli.telefono || 'N/A'}</td>
+                    <td style="padding: 12px; color: var(--color-texto-suave);">${cli.email || 'N/A'}</td>
                     <td style="padding: 12px; text-align: center;">
                         <div style="display: flex; gap: 6px; justify-content: center;">
-                            <button class="btn-editar-cliente" data-id="${cli.id}" data-cedula="${cli.cedula}" data-nombre="${cli.nombre}" data-telefono="${cli.telefono || ''}" data-email="${cli.email || ''}" data-direccion="${cli.direccion || ''}" style="padding: 6px 12px; background-color: #2563eb; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 500;">Editar</button>
-                            <button class="btn-eliminar-cliente" data-id="${cli.id}" style="padding: 6px 12px; background-color: #dc2626; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 500;">Eliminar</button>
+                            <button class="btn-editar-cliente" data-id="${cli.id}" data-cedula="${cli.cedula}" data-nombre="${cli.nombre}" data-telefono="${cli.telefono || ''}" data-email="${cli.email || ''}" data-direccion="${cli.direccion || ''}" style="padding: 6px 12px; background-color: var(--color-secundario); color: var(--color-texto); border: none; border-radius: 6px; cursor: pointer; font-weight: 500;">Editar</button>
+                            <button class="btn-eliminar-cliente" data-id="${cli.id}" style="padding: 6px 12px; background-color: var(--color-peligro); color: var(--color-texto-invertido); border: none; border-radius: 6px; cursor: pointer; font-weight: 500;">Eliminar</button>
                         </div>
                     </td>
                 </tr>
@@ -922,22 +922,22 @@ document.addEventListener('DOMContentLoaded', () => {
                     contentBody.innerHTML = `
         <div class="grid-pos">
             <div class="card">
-                <h3 style="color: #f8fafc;">Seleccionar Productos</h3>
+                <h3 style="color: var(--color-texto);">Seleccionar Productos</h3>
                 <div class="fila-agregar-producto" style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 15px; margin-bottom: 15px;">
                     <div style="flex: 2 1 220px; position: relative;">
-                        <input type="text" id="input-buscar-producto" placeholder="Escribe para buscar por iniciales o nombre..." list="lista-sugerencias-productos" style="width: 100%; padding: 10px 12px; background: #0f172a; border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; color: #f3f4f6; box-sizing: border-box; outline: none;">
+                        <input type="text" id="input-buscar-producto" placeholder="Escribe para buscar por iniciales o nombre..." list="lista-sugerencias-productos" style="width: 100%; padding: 10px 12px; background: var(--color-fondo); border: 1px solid var(--color-borde); border-radius: 6px; color: var(--color-texto); box-sizing: border-box; outline: none;">
                         <datalist id="lista-sugerencias-productos">
                         </datalist>
                         <input type="hidden" id="producto-seleccionado-id" value="">
                     </div>
-                    <input type="number" id="cantidad-producto" value="1" min="1" style="padding: 10px; width: 80px; background: #0f172a; border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; color: #f3f4f6; text-align: center; outline: none;">
-                    <button type="button" id="btn-agregar-carrito" style="padding: 10px 18px; background: linear-gradient(135deg, #2563eb, #38bdf8); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">Agregar</button>
+                    <input type="number" id="cantidad-producto" value="1" min="1" style="padding: 10px; width: 80px; background: var(--color-fondo); border: 1px solid var(--color-borde); border-radius: 6px; color: var(--color-texto); text-align: center; outline: none;">
+                    <button type="button" id="btn-agregar-carrito" style="padding: 10px 18px; background: var(--color-primario-boton); color: var(--color-texto-invertido); border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">Agregar</button>
                 </div>
-                <h4 style="color: #f8fafc; margin-top: 20px; margin-bottom: 10px;">Carrito de Compras</h4>
+                <h4 style="color: var(--color-texto); margin-top: 20px; margin-bottom: 10px;">Carrito de Compras</h4>
                 <div class="tabla-responsive">
-                    <table style="width:100%; border-collapse: collapse; text-align: left; color: #f3f4f6;">
+                    <table style="width:100%; border-collapse: collapse; text-align: left; color: var(--color-texto);">
                         <thead>
-                            <tr style="background-color:#020617; color: #38bdf8; border-bottom: 2px solid rgba(56, 189, 248, 0.2);">
+                            <tr style="background-color: var(--color-secundario); color: var(--color-texto); border-bottom: 2px solid var(--color-primario);">
                                 <th style="padding: 10px;">Producto</th>
                                 <th style="padding: 10px;">Precio</th>
                                 <th style="padding: 10px; text-align: center;">Cantidad</th>
@@ -946,57 +946,57 @@ document.addEventListener('DOMContentLoaded', () => {
                             </tr>
                         </thead>
                         <tbody id="carrito-body">
-                            <tr><td colspan="5" style="padding: 15px; text-align: center; color: #94a3b8;">No hay productos en el carrito.</td></tr>
+                            <tr><td colspan="5" style="padding: 15px; text-align: center; color: var(--color-texto-suave);">No hay productos en el carrito.</td></tr>
                         </tbody>
                     </table>
                 </div>
             </div>
             <div class="card">
-                <h3 style="color: #f8fafc;">Datos de la venta</h3>
+                <h3 style="color: var(--color-texto);">Datos de la venta</h3>
                 <div style="margin-top: 15px; margin-bottom: 15px;">
-                    <label style="display: block; margin-bottom: 5px; font-weight: 500; color: #94a3b8; font-size: 0.9rem;">Buscar Cliente (Opcional):</label>
+                    <label style="display: block; margin-bottom: 5px; font-weight: 500; color: var(--color-texto-suave); font-size: 0.9rem;">Buscar Cliente (Opcional):</label>
                     <div style="display: flex; gap: 8px;">
-                        <input type="text" id="busqueda-cedula" placeholder="Digite la cédula..." style="padding: 10px 12px; background: #0f172a; border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; color: #f3f4f6; flex: 1; outline: none;">
-                        <button type="button" id="btn-buscar-cliente" style="padding: 10px 14px; background-color: #2563eb; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">Buscar</button>
+                        <input type="text" id="busqueda-cedula" placeholder="Digite la cédula..." style="padding: 10px 12px; background: var(--color-fondo); border: 1px solid var(--color-borde); border-radius: 6px; color: var(--color-texto); flex: 1; outline: none;">
+                        <button type="button" id="btn-buscar-cliente" style="padding: 10px 14px; background-color: var(--color-secundario); color: var(--color-texto); border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">Buscar</button>
                     </div>
                 </div>
 
-                <div id="info-cliente-container" style="margin-bottom: 15px; padding: 12px; background: rgba(22, 163, 74, 0.1); border-radius: 6px; border: 1px solid rgba(34, 197, 94, 0.3); display: none;">
-                    <p style="margin: 0; color: #4ade80; font-weight: 500;" id="texto-cliente-encontrado"></p>
-                    <button type="button" id="btn-cambiar-cliente" style="margin-top: 6px; background: none; border: none; color: #38bdf8; cursor: pointer; padding: 0; font-size: 0.85rem;">Cambiar cliente</button>
+                <div id="info-cliente-container" style="margin-bottom: 15px; padding: 12px; background: var(--color-exito-suave); border-radius: 6px; border: 1px solid var(--color-exito); display: none;">
+                    <p style="margin: 0; color: var(--color-exito); font-weight: 500;" id="texto-cliente-encontrado"></p>
+                    <button type="button" id="btn-cambiar-cliente" style="margin-top: 6px; background: none; border: none; color: var(--color-primario-texto); cursor: pointer; padding: 0; font-size: 0.85rem;">Cambiar cliente</button>
                 </div>
 
-                <div id="form-nuevo-cliente-pos" style="margin-bottom: 15px; padding: 12px; background: rgba(217, 119, 6, 0.1); border-radius: 6px; border: 1px solid rgba(245, 158, 11, 0.3); display: none;">
-                    <h4 style="margin: 0 0 8px 0; color: #fbbf24; font-size: 0.95rem;">Cliente no encontrado. Regístrese aquí:</h4>
-                    <input type="text" id="pos-nuevo-nombre" placeholder="Nombre completo" required style="width: 100%; padding: 8px 10px; background: #0f172a; border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; color: #f3f4f6; margin-bottom: 8px; box-sizing: border-box; outline: none;">
-                    <input type="text" id="pos-nuevo-telefono" placeholder="Número de teléfono" required style="width: 100%; padding: 8px 10px; background: #0f172a; border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; color: #f3f4f6; margin-bottom: 8px; box-sizing: border-box; outline: none;">
-                    <input type="email" id="pos-nuevo-email" placeholder="Correo electrónico" style="width: 100%; padding: 8px 10px; background: #0f172a; border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; color: #f3f4f6; margin-bottom: 8px; box-sizing: border-box; outline: none;">
-                    <input type="text" id="pos-nuevo-direccion" placeholder="Dirección" required style="width: 100%; padding: 8px 10px; background: #0f172a; border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; color: #f3f4f6; margin-bottom: 8px; box-sizing: border-box; outline: none;">
-                    <button type="button" id="btn-registrar-rapido" style="width: 100%; padding: 9px; background-color: #d97706; color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer;">Registrar y Seleccionar</button>
+                <div id="form-nuevo-cliente-pos" style="margin-bottom: 15px; padding: 12px; background: var(--color-acento-suave); border-radius: 6px; border: 1px solid var(--color-acento); display: none;">
+                    <h4 style="margin: 0 0 8px 0; color: var(--color-advertencia-texto); font-size: 0.95rem;">Cliente no encontrado. Regístrese aquí:</h4>
+                    <input type="text" id="pos-nuevo-nombre" placeholder="Nombre completo" required style="width: 100%; padding: 8px 10px; background: var(--color-fondo); border: 1px solid var(--color-borde); border-radius: 6px; color: var(--color-texto); margin-bottom: 8px; box-sizing: border-box; outline: none;">
+                    <input type="text" id="pos-nuevo-telefono" placeholder="Número de teléfono" required style="width: 100%; padding: 8px 10px; background: var(--color-fondo); border: 1px solid var(--color-borde); border-radius: 6px; color: var(--color-texto); margin-bottom: 8px; box-sizing: border-box; outline: none;">
+                    <input type="email" id="pos-nuevo-email" placeholder="Correo electrónico" style="width: 100%; padding: 8px 10px; background: var(--color-fondo); border: 1px solid var(--color-borde); border-radius: 6px; color: var(--color-texto); margin-bottom: 8px; box-sizing: border-box; outline: none;">
+                    <input type="text" id="pos-nuevo-direccion" placeholder="Dirección" required style="width: 100%; padding: 8px 10px; background: var(--color-fondo); border: 1px solid var(--color-borde); border-radius: 6px; color: var(--color-texto); margin-bottom: 8px; box-sizing: border-box; outline: none;">
+                    <button type="button" id="btn-registrar-rapido" style="width: 100%; padding: 9px; background-color: var(--color-acento); color: var(--color-texto); border: none; border-radius: 6px; font-weight: 600; cursor: pointer;">Registrar y Seleccionar</button>
                 </div>
 
                 <input type="hidden" id="cliente-seleccionado-id" value="">
 
-                <div style="background-color: #0f172a; padding: 15px; border-radius: 8px; margin-bottom: 15px; border: 1px solid rgba(255, 255, 255, 0.05);">
-                    <h4 style="margin: 0 0 10px 0; color: #f8fafc;">Resumen y Pago</h4>
-                    <p style="font-size: 1.2rem; font-weight: bold; margin: 0 0 12px 0; color: #38bdf8;">Total: $<span id="span-total">0.00</span></p>
+                <div style="background-color: var(--color-fondo); padding: 15px; border-radius: 8px; margin-bottom: 15px; border: 1px solid var(--color-borde);">
+                    <h4 style="margin: 0 0 10px 0; color: var(--color-texto);">Resumen y Pago</h4>
+                    <p style="font-size: 1.2rem; font-weight: bold; margin: 0 0 12px 0; color: var(--color-primario-texto);">Total: $<span id="span-total">0.00</span></p>
                     
                     <div style="margin-bottom: 10px;">
-                        <label style="display: block; font-size: 0.85rem; margin-bottom: 4px; font-weight: 500; color: #94a3b8;">Método de Pago:</label>
-                        <select id="select-metodo-pago" style="width: 100%; padding: 9px; background: #111827; border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; color: #f3f4f6; margin-bottom: 10px; box-sizing: border-box; outline: none;">
-                            <option value="Efectivo" style="background: #111827; color: #f3f4f6;">Efectivo</option>
-                            <option value="Transferencia" style="background: #111827; color: #f3f4f6;">Transferencia</option>
-                            <option value="Datáfono" style="background: #111827; color: #f3f4f6;">Datáfono</option>
+                        <label style="display: block; font-size: 0.85rem; margin-bottom: 4px; font-weight: 500; color: var(--color-texto-suave);">Método de Pago:</label>
+                        <select id="select-metodo-pago" style="width: 100%; padding: 9px; background: var(--color-superficie); border: 1px solid var(--color-borde); border-radius: 6px; color: var(--color-texto); margin-bottom: 10px; box-sizing: border-box; outline: none;">
+                            <option value="Efectivo" style="background: var(--color-superficie); color: var(--color-texto);">Efectivo</option>
+                            <option value="Transferencia" style="background: var(--color-superficie); color: var(--color-texto);">Transferencia</option>
+                            <option value="Datáfono" style="background: var(--color-superficie); color: var(--color-texto);">Datáfono</option>
                         </select>
 
-                        <label style="display: block; font-size: 0.85rem; margin-bottom: 4px; font-weight: 500; color: #94a3b8;">Monto Recibido / Pagado:</label>
-                        <input type="number" id="input-monto-pago" placeholder="0.00" style="width: 100%; padding: 9px; background: #111827; border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; color: #f3f4f6; box-sizing: border-box; outline: none;" min="0" step="0.01">
+                        <label style="display: block; font-size: 0.85rem; margin-bottom: 4px; font-weight: 500; color: var(--color-texto-suave);">Monto Recibido / Pagado:</label>
+                        <input type="number" id="input-monto-pago" placeholder="0.00" style="width: 100%; padding: 9px; background: var(--color-superficie); border: 1px solid var(--color-borde); border-radius: 6px; color: var(--color-texto); box-sizing: border-box; outline: none;" min="0" step="0.01">
                     </div>
                     
-                    <p style="font-size: 1rem; font-weight: bold; margin: 12px 0 0 0; color: #34d399;">Cambio (Vueltos): $<span id="span-cambio">0.00</span></p>
+                    <p style="font-size: 1rem; font-weight: bold; margin: 12px 0 0 0; color: var(--color-exito);">Cambio (Vueltos): $<span id="span-cambio">0.00</span></p>
                 </div>
-                <button type="button" id="btn-procesar-venta" style="width: 100%; padding: 12px; background: linear-gradient(135deg, #16a34a, #22c55e); color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; margin-bottom: 8px; box-shadow: 0 4px 12px rgba(22, 163, 74, 0.3);">Procesar Venta</button>
-                <button type="button" id="btn-cancelar-venta" style="width: 100%; padding: 10px; background-color: #475569; color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer;">Cancelar Venta</button>
+                <button type="button" id="btn-procesar-venta" style="width: 100%; padding: 12px; background: var(--color-primario-boton); color: var(--color-texto-invertido); border: none; border-radius: 6px; font-weight: 600; cursor: pointer; margin-bottom: 8px; box-shadow: var(--sombra-boton);">Procesar Venta</button>
+                <button type="button" id="btn-cancelar-venta" style="width: 100%; padding: 10px; background-color: var(--color-superficie); color: var(--color-texto); border: 1px solid var(--color-borde-fuerte); border-radius: 6px; font-weight: 600; cursor: pointer;">Cancelar Venta</button>
             </div>
         </div>
     `;
@@ -1214,7 +1214,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             tbody.innerHTML = '';
 
                             if (carrito.length === 0) {
-                                tbody.innerHTML = '<tr><td colspan="5" style="padding: 15px; text-align: center; color: #94a3b8;">No hay productos en el carrito.</td></tr>';
+                                tbody.innerHTML = '<tr><td colspan="5" style="padding: 15px; text-align: center; color: var(--color-texto-suave);">No hay productos en el carrito.</td></tr>';
                                 spanTotal.textContent = '0.00';
                                 spanCambio.textContent = '0.00';
                                 return;
@@ -1225,15 +1225,15 @@ document.addEventListener('DOMContentLoaded', () => {
                                 const subtotal = item.precioUnitario * item.cantidad;
                                 totalGeneral += subtotal;
                                 tbody.innerHTML += `
-                    <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.05);">
+                    <tr style="border-bottom: 1px solid var(--color-borde);">
                         <td style="padding: 10px;">${item.nombre}</td>
-                        <td style="padding: 10px; color: #34d399;">$${item.precioUnitario}</td>
+                        <td style="padding: 10px; color: var(--color-exito);">$${item.precioUnitario}</td>
                         <td style="padding: 10px; text-align: center;">
-                            <input type="number" class="input-cambiar-cantidad" data-index="${index}" value="${item.cantidad}" min="1" style="width: 60px; padding: 4px; background: #0f172a; border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; color: #f3f4f6; text-align: center; outline: none;">
+                            <input type="number" class="input-cambiar-cantidad" data-index="${index}" value="${item.cantidad}" min="1" style="width: 60px; padding: 4px; background: var(--color-fondo); border: 1px solid var(--color-borde); border-radius: 4px; color: var(--color-texto); text-align: center; outline: none;">
                         </td>
-                        <td style="padding: 10px; color: #38bdf8;">$${subtotal.toFixed(2)}</td>
+                        <td style="padding: 10px; color: var(--color-primario-texto);">$${subtotal.toFixed(2)}</td>
                         <td style="padding: 10px; text-align: center;">
-                            <button type="button" class="btn-eliminar-item" data-index="${index}" style="padding: 5px 10px; background-color: #dc2626; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 500;">Quitar</button>
+                            <button type="button" class="btn-eliminar-item" data-index="${index}" style="padding: 5px 10px; background-color: var(--color-peligro); color: var(--color-texto-invertido); border: none; border-radius: 6px; cursor: pointer; font-weight: 500;">Quitar</button>
                         </td>
                     </tr>
                 `;
@@ -1398,24 +1398,24 @@ document.addEventListener('DOMContentLoaded', () => {
                     contentBody.innerHTML = `
 
       <!-- Tarjeta del Gran Total Global -->
-        <div class="card" style="margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; background: linear-gradient(135deg, #0f172a, #1e293b);">
-            <h3 style="color: #f8fafc; margin: 0; font-size: 1.1rem;"> Ventas del Día</h3>
-            <span id="total-ventas-dia" style="color: #38bdf8; font-size: 1.4rem; font-weight: bold;">$0.00</span>
+        <div class="card" style="margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; background: linear-gradient(135deg, var(--color-primario-suave), var(--color-secundario-suave));">
+            <h3 style="color: var(--color-texto); margin: 0; font-size: 1.1rem;"> Ventas del Día</h3>
+            <span id="total-ventas-dia" style="color: var(--color-primario-texto); font-size: 1.4rem; font-weight: bold;">$0.00</span>
         </div>
 
         <!-- Tarjetas de resumen desglosadas por método de pago -->
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px;">
-            <div class="card" style="margin-bottom: 0; padding: 15px; border-left: 4px solid #38bdf8;">
-                <span style="font-size: 0.85rem; color: #94a3b8; font-weight: 500;">Total Efectivo</span>
-                <div id="total-efectivo" style="font-size: 1.3rem; font-weight: bold; color: #f8fafc; margin-top: 5px;">$0.00</div>
+            <div class="card" style="margin-bottom: 0; padding: 15px; border-left: 4px solid var(--color-secundario-fuerte);">
+                <span style="font-size: 0.85rem; color: var(--color-texto-suave); font-weight: 500;">Total Efectivo</span>
+                <div id="total-efectivo" style="font-size: 1.3rem; font-weight: bold; color: var(--color-texto); margin-top: 5px;">$0.00</div>
             </div>
-            <div class="card" style="margin-bottom: 0; padding: 15px; border-left: 4px solid #a855f7;">
-                <span style="font-size: 0.85rem; color: #94a3b8; font-weight: 500;">Total Transferencia</span>
-                <div id="total-transferencia" style="font-size: 1.3rem; font-weight: bold; color: #f8fafc; margin-top: 5px;">$0.00</div>
+            <div class="card" style="margin-bottom: 0; padding: 15px; border-left: 4px solid var(--color-primario);">
+                <span style="font-size: 0.85rem; color: var(--color-texto-suave); font-weight: 500;">Total Transferencia</span>
+                <div id="total-transferencia" style="font-size: 1.3rem; font-weight: bold; color: var(--color-texto); margin-top: 5px;">$0.00</div>
             </div>
-            <div class="card" style="margin-bottom: 0; padding: 15px; border-left: 4px solid #34d399;">
-                <span style="font-size: 0.85rem; color: #94a3b8; font-weight: 500;">Total Datáfono</span>
-                <div id="total-datafono" style="font-size: 1.3rem; font-weight: bold; color: #f8fafc; margin-top: 5px;">$0.00</div>
+            <div class="card" style="margin-bottom: 0; padding: 15px; border-left: 4px solid var(--color-acento);">
+                <span style="font-size: 0.85rem; color: var(--color-texto-suave); font-weight: 500;">Total Datáfono</span>
+                <div id="total-datafono" style="font-size: 1.3rem; font-weight: bold; color: var(--color-texto); margin-top: 5px;">$0.00</div>
             </div>
         </div>
 
@@ -1423,9 +1423,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         <!-- Contenedor de listas desplegables por Método de Pago -->
         <div class="card">
-            <h3 style="color: #f8fafc; margin-bottom: 15px;">Desglose de Facturas por Método de Pago</h3>
+            <h3 style="color: var(--color-texto); margin-bottom: 15px;">Desglose de Facturas por Método de Pago</h3>
             <div id="contenedor-desglose-metodos">
-                <p style="padding: 15px; color: #94a3b8; text-align: center;">Cargando ventas del día...</p>
+                <p style="padding: 15px; color: var(--color-texto-suave); text-align: center;">Cargando ventas del día...</p>
             </div>
         </div>
     `;
@@ -1443,7 +1443,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 const spanDatafono = document.getElementById('total-datafono');
 
                                 if (!ventas || ventas.length === 0) {
-                                    contenedor.innerHTML = '<p style="padding: 15px; text-align: center; color: #94a3b8;">No se han registrado ventas el día de hoy.</p>';
+                                    contenedor.innerHTML = '<p style="padding: 15px; text-align: center; color: var(--color-texto-suave);">No se han registrado ventas el día de hoy.</p>';
                                     spanTotalDia.textContent = '$0.00';
                                     spanEfectivo.textContent = '$0.00';
                                     spanTransferencia.textContent = '$0.00';
@@ -1470,14 +1470,14 @@ document.addEventListener('DOMContentLoaded', () => {
                                     const hora = venta.fecha ? venta.fecha.split('T')[1].substring(0, 5) : 'N/A';
 
                                     let totalVenta = 0;
-                                    let listaProductosHTML = '<ul style="margin: 0; padding-left: 20px; color: #94a3b8;">';
+                                    let listaProductosHTML = '<ul style="margin: 0; padding-left: 20px; color: var(--color-texto-suave);">';
 
                                     if (venta.detalleVenta && venta.detalleVenta.length > 0) {
                                         venta.detalleVenta.forEach(det => {
                                             const subtotal = det.cantidad * det.precioUnitario;
                                             totalVenta += subtotal;
                                             const prodNombre = det.idProductoNavigation ? det.idProductoNavigation.nombre : `ID: ${det.idProducto}`;
-                                            listaProductosHTML += `<li style="margin-bottom: 4px;"><strong style="color: #f3f4f6;">${prodNombre}</strong> - Cantidad: ${det.cantidad} | Subtotal: <span style="color: #38bdf8;">$${subtotal.toFixed(2)}</span></li>`;
+                                            listaProductosHTML += `<li style="margin-bottom: 4px;"><strong style="color: var(--color-texto);">${prodNombre}</strong> - Cantidad: ${det.cantidad} | Subtotal: <span style="color: var(--color-primario-texto);">$${subtotal.toFixed(2)}</span></li>`;
                                         });
                                     }
                                     listaProductosHTML += '</ul>';
@@ -1526,26 +1526,26 @@ document.addEventListener('DOMContentLoaded', () => {
                                     const listaVentas = grupos[metodo];
                                     const subtotalMetodo = totalesGrupo[metodo];
 
-                                    let colorBorde = '#38bdf8';
-                                    if (metodo === 'Transferencia') colorBorde = '#a855f7';
-                                    if (metodo === 'Datáfono') colorBorde = '#34d399';
+                                    let colorBorde = 'var(--color-secundario-fuerte)';
+                                    if (metodo === 'Transferencia') colorBorde = 'var(--color-primario)';
+                                    if (metodo === 'Datáfono') colorBorde = 'var(--color-acento)';
 
                                     htmlDesglose += `
-                        <details style="background: #0f172a; border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; overflow: hidden; border-left: 4px solid ${colorBorde};">
-                            <summary style="padding: 14px 18px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-weight: 600; color: #f8fafc; user-select: none; background: rgba(255,255,255,0.02);">
-                                <span>${metodo} <span style="font-size: 0.85rem; color: #94a3b8; font-weight: normal; margin-left: 8px;">(${listaVentas.length} transacciones)</span></span>
-                                <span style="color: ${colorBorde}; font-size: 1.05rem;">$${subtotalMetodo.toFixed(2)} ▼</span>
+                        <details style="background: var(--color-fondo); border: 1px solid var(--color-borde); border-radius: 8px; overflow: hidden; border-left: 4px solid ${colorBorde};">
+                            <summary style="padding: 14px 18px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-weight: 600; color: var(--color-texto); user-select: none; background: var(--color-superficie);">
+                                <span>${metodo} <span style="font-size: 0.85rem; color: var(--color-texto-suave); font-weight: normal; margin-left: 8px;">(${listaVentas.length} transacciones)</span></span>
+                                <span style="color: var(--color-texto); font-size: 1.05rem;">$${subtotalMetodo.toFixed(2)} ▼</span>
                             </summary>
-                            <div class="tabla-responsive" style="padding: 15px 20px; border-top: 1px solid rgba(255,255,255,0.05); background: #0b0f19;">
+                            <div class="tabla-responsive" style="padding: 15px 20px; border-top: 1px solid var(--color-borde); background: var(--color-fondo);">
                     `;
 
                                     if (listaVentas.length === 0) {
-                                        htmlDesglose += `<p style="color: #94a3b8; font-size: 0.9rem; margin: 0; text-align: center;">No hay ventas registradas con este método.</p>`;
+                                        htmlDesglose += `<p style="color: var(--color-texto-suave); font-size: 0.9rem; margin: 0; text-align: center;">No hay ventas registradas con este método.</p>`;
                                     } else {
                                         htmlDesglose += `
                             <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem;">
                                 <thead>
-                                    <tr style="color: #94a3b8; border-bottom: 1px solid rgba(255,255,255,0.1);">
+                                    <tr style="color: var(--color-texto-suave); border-bottom: 1px solid var(--color-borde);">
                                         <th style="padding: 8px;">Factura ID</th>
                                         <th style="padding: 8px;">Hora</th>
                                         <th style="padding: 8px; text-align: right;">Valor</th>
@@ -1557,17 +1557,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
                                         listaVentas.forEach(item => {
                                             htmlDesglose += `
-                                <tr style="border-bottom: 1px solid rgba(255,255,255,0.03);">
-                                    <td style="padding: 10px 8px; color: #94a3b8;">#${item.id}</td>
-                                    <td style="padding: 10px 8px; color: #f3f4f6;">${item.hora}</td>
-                                    <td style="padding: 10px 8px; text-align: right; font-weight: 600; color: #34d399;">$${item.total.toFixed(2)}</td>
+                                <tr style="border-bottom: 1px solid var(--color-borde);">
+                                    <td style="padding: 10px 8px; color: var(--color-texto-suave);">#${item.id}</td>
+                                    <td style="padding: 10px 8px; color: var(--color-texto);">${item.hora}</td>
+                                    <td style="padding: 10px 8px; text-align: right; font-weight: 600; color: var(--color-exito);">$${item.total.toFixed(2)}</td>
                                     <td style="padding: 10px 8px; text-align: center;">
-                                        <button class="btn-desplegar-detalle" data-id="${item.id}" style="background-color: #2563eb; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8rem;">Ver Detalle ▼</button>
+                                        <button class="btn-desplegar-detalle" data-id="${item.id}" style="background-color: var(--color-secundario); color: var(--color-texto); border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8rem;">Ver Detalle ▼</button>
                                     </td>
                                 </tr>
-                                <tr id="detalle-factura-${item.id}" style="display: none; background-color: #0f172a; border-bottom: 1px solid rgba(255,255,255,0.05);">
+                                <tr id="detalle-factura-${item.id}" style="display: none; background-color: var(--color-fondo); border-bottom: 1px solid var(--color-borde);">
                                     <td colspan="4" style="padding: 12px 15px;">
-                                        <div style="font-weight: 600; margin-bottom: 6px; color: #38bdf8; font-size: 0.85rem;">Productos de la Factura #${item.id}:</div>
+                                        <div style="font-weight: 600; margin-bottom: 6px; color: var(--color-primario-texto); font-size: 0.85rem;">Productos de la Factura #${item.id}:</div>
                                         ${item.productosHTML}
                                     </td>
                                 </tr>
@@ -1577,8 +1577,8 @@ document.addEventListener('DOMContentLoaded', () => {
                                         htmlDesglose += `
                                 </tbody>
                             </table>
-                            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 12px; padding-top: 10px; border-top: 1px dashed rgba(255,255,255,0.1); font-weight: bold;">
-                                <span style="color: #94a3b8; font-size: 0.9rem;">Subtotal ${metodo}:</span>
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 12px; padding-top: 10px; border-top: 1px dashed var(--color-borde); font-weight: bold;">
+                                <span style="color: var(--color-texto-suave); font-size: 0.9rem;">Subtotal ${metodo}:</span>
                                 <span style="color: ${colorBorde};">$${subtotalMetodo.toFixed(2)}</span>
                             </div>
                         `;
@@ -1602,11 +1602,11 @@ document.addEventListener('DOMContentLoaded', () => {
                                         if (filaDetalle.style.display === 'none') {
                                             filaDetalle.style.display = 'table-row';
                                             e.target.textContent = 'Ocultar ▲';
-                                            e.target.style.backgroundColor = '#475569';
+                                            e.target.style.backgroundColor = 'var(--color-secundario-hover)';
                                         } else {
                                             filaDetalle.style.display = 'none';
                                             e.target.textContent = 'Ver Detalle ▼';
-                                            e.target.style.backgroundColor = '#2563eb';
+                                            e.target.style.backgroundColor = 'var(--color-secundario)';
                                         }
                                     });
                                 });
@@ -1614,7 +1614,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             })
                             .catch(err => {
                                 console.error('Error al cargar ventas:', err);
-                                document.getElementById('contenedor-desglose-metodos').innerHTML = '<p style="padding: 15px; color: #f87171; text-align: center;">Error al cargar el reporte de ventas.</p>';
+                                document.getElementById('contenedor-desglose-metodos').innerHTML = '<p style="padding: 15px; color: var(--color-peligro); text-align: center;">Error al cargar el reporte de ventas.</p>';
                             });
                     }
 
@@ -1626,28 +1626,28 @@ document.addEventListener('DOMContentLoaded', () => {
                     contentBody.innerHTML = `
         <div class="grid-2" style="margin-bottom: 20px;">
             <div class="card">
-                <h3 style="color: #f8fafc; margin-bottom: 10px;">🏆 Producto con mayor demanda</h3>
+                <h3 style="color: var(--color-texto); margin-bottom: 10px;">🏆 Producto con mayor demanda</h3>
                 <div id="contenedor-producto-general" style="margin-top: 15px;">
-                    <p style="color: #94a3b8; text-align: center; padding: 15px;">Cargando general...</p>
+                    <p style="color: var(--color-texto-suave); text-align: center; padding: 15px;">Cargando general...</p>
                 </div>
             </div>
             <div class="card">
-                <h3 style="color: #f8fafc; margin-bottom: 10px;">📅 Más Vendido del Día</h3>
+                <h3 style="color: var(--color-texto); margin-bottom: 10px;">📅 Más Vendido del Día</h3>
                 <div style="margin-top: 10px; margin-bottom: 15px; display: flex; gap: 8px; align-items: center;">
-                    <input type="date" id="filtro-fecha-estrella" style="padding: 9px 12px; background: #0f172a; border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; color: #f3f4f6; outline: none; flex: 1;">
-                    <button type="button" id="btn-consultar-dia" style="padding: 10px 14px; background-color: #2563eb; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">Consultar</button>
+                    <input type="date" id="filtro-fecha-estrella" style="padding: 9px 12px; background: var(--color-fondo); border: 1px solid var(--color-borde); border-radius: 6px; color: var(--color-texto); outline: none; flex: 1;">
+                    <button type="button" id="btn-consultar-dia" style="padding: 10px 14px; background-color: var(--color-secundario); color: var(--color-texto); border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">Consultar</button>
                 </div>
                 <div id="contenedor-producto-diario">
-                    <p style="color: #94a3b8; text-align: center; padding: 15px;">Cargando diario...</p>
+                    <p style="color: var(--color-texto-suave); text-align: center; padding: 15px;">Cargando diario...</p>
                 </div>
             </div>
         </div>
 
         <!-- Nueva Sección: Top 5 Productos más vendidos del día en barras -->
         <div class="card">
-            <h3 style="color: #f8fafc; margin-bottom: 15px;">📊 Top 5 Productos Más Vendidos del Día</h3>
+            <h3 style="color: var(--color-texto); margin-bottom: 15px;">📊 Top 5 Productos Más Vendidos del Día</h3>
             <div id="contenedor-top5-diario">
-                <p style="color: #94a3b8; text-align: center; padding: 15px;">Cargando gráfico de barras...</p>
+                <p style="color: var(--color-texto-suave); text-align: center; padding: 15px;">Cargando gráfico de barras...</p>
             </div>
         </div>
     `;
@@ -1659,19 +1659,19 @@ document.addEventListener('DOMContentLoaded', () => {
                             const contenedor = document.getElementById('contenedor-producto-general');
                             const prod = data.producto;
                             if (!prod) {
-                                contenedor.innerHTML = '<p style="color: #94a3b8; text-align: center; padding: 15px;">Sin registros.</p>';
+                                contenedor.innerHTML = '<p style="color: var(--color-texto-suave); text-align: center; padding: 15px;">Sin registros.</p>';
                                 return;
                             }
                             contenedor.innerHTML = `
-                <div style="background: #0f172a; padding: 18px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.05);">
-                    <h4 style="margin: 0 0 6px 0; color: #f8fafc; font-size: 1.1rem;">${prod.nombre}</h4>
-                    <p style="margin: 0 0 10px 0; color: #94a3b8; font-size: 0.9rem;">Categoría: ${prod.categoria || 'General'}</p>
-                    <p style="margin: 0; font-weight: bold; color: #34d399; font-size: 1rem;">Total histórico: ${data.totalUnidadesVendidas} unidades</p>
+                <div style="background: var(--color-fondo); padding: 18px; border-radius: 8px; border: 1px solid var(--color-borde);">
+                    <h4 style="margin: 0 0 6px 0; color: var(--color-texto); font-size: 1.1rem;">${prod.nombre}</h4>
+                    <p style="margin: 0 0 10px 0; color: var(--color-texto-suave); font-size: 0.9rem;">Categoría: ${prod.categoria || 'General'}</p>
+                    <p style="margin: 0; font-weight: bold; color: var(--color-exito); font-size: 1rem;">Total histórico: ${data.totalUnidadesVendidas} unidades</p>
                 </div>
             `;
                         })
                         .catch(() => {
-                            document.getElementById('contenedor-producto-general').innerHTML = '<p style="color: #f87171; text-align: center; padding: 15px;">Sin datos suficientes.</p>';
+                            document.getElementById('contenedor-producto-general').innerHTML = '<p style="color: var(--color-peligro); text-align: center; padding: 15px;">Sin datos suficientes.</p>';
                         });
 
                     // 2. Producto Estrella Diario y Top 5 por fecha
@@ -1691,15 +1691,15 @@ document.addEventListener('DOMContentLoaded', () => {
                                 const contenedor = document.getElementById('contenedor-producto-diario');
                                 const prod = data.producto;
                                 contenedor.innerHTML = `
-                    <div style="background: #0f172a; padding: 18px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.05);">
-                        <h4 style="margin: 0 0 6px 0; color: #f8fafc; font-size: 1.1rem;">${prod.nombre}</h4>
-                        <p style="margin: 0 0 10px 0; color: #94a3b8; font-size: 0.9rem;">Fecha consultada: ${data.fechaConsulta}</p>
-                        <p style="margin: 0; font-weight: bold; color: #38bdf8; font-size: 1rem;">Vendidos hoy: ${data.totalUnidadesVendidas} unidades</p>
+                    <div style="background: var(--color-fondo); padding: 18px; border-radius: 8px; border: 1px solid var(--color-borde);">
+                        <h4 style="margin: 0 0 6px 0; color: var(--color-texto); font-size: 1.1rem;">${prod.nombre}</h4>
+                        <p style="margin: 0 0 10px 0; color: var(--color-texto-suave); font-size: 0.9rem;">Fecha consultada: ${data.fechaConsulta}</p>
+                        <p style="margin: 0; font-weight: bold; color: var(--color-primario-texto); font-size: 1rem;">Vendidos hoy: ${data.totalUnidadesVendidas} unidades</p>
                     </div>
                 `;
                             })
                             .catch(() => {
-                                document.getElementById('contenedor-producto-diario').innerHTML = '<p style="color: #fbbf24; font-size: 0.9rem; text-align: center; padding: 15px;">No hay ventas registradas en esta fecha.</p>';
+                                document.getElementById('contenedor-producto-diario').innerHTML = '<p style="color: var(--color-advertencia-texto); font-size: 0.9rem; text-align: center; padding: 15px;">No hay ventas registradas en esta fecha.</p>';
                             });
 
                         // Cargar el Top 5 de productos del día en formato de barras
@@ -1710,7 +1710,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 const contenedorTop5 = document.getElementById('contenedor-top5-diario');
 
                                 if (!ventas || ventas.length === 0) {
-                                    contenedorTop5.innerHTML = '<p style="color: #94a3b8; text-align: center; padding: 15px;">No hay datos de ventas para graficar el Top 5 en esta fecha.</p>';
+                                    contenedorTop5.innerHTML = '<p style="color: var(--color-texto-suave); text-align: center; padding: 15px;">No hay datos de ventas para graficar el Top 5 en esta fecha.</p>';
                                     return;
                                 }
 
@@ -1735,7 +1735,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 })).sort((a, b) => b.cantidad - a.cantidad).slice(0, 5);
 
                                 if (arrayProductos.length === 0) {
-                                    contenedorTop5.innerHTML = '<p style="color: #94a3b8; text-align: center; padding: 15px;">Sin productos vendidos hoy.</p>';
+                                    contenedorTop5.innerHTML = '<p style="color: var(--color-texto-suave); text-align: center; padding: 15px;">Sin productos vendidos hoy.</p>';
                                     return;
                                 }
 
@@ -1746,13 +1746,13 @@ document.addEventListener('DOMContentLoaded', () => {
                                     const porcentaje = Math.round((p.cantidad / maxUnidades) * 100);
 
                                     barrasHTML += `
-                        <div style="background: #0f172a; padding: 12px 15px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05);">
+                        <div style="background: var(--color-fondo); padding: 12px 15px; border-radius: 8px; border: 1px solid var(--color-borde);">
                             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; font-size: 0.95rem;">
-                                <span style="font-weight: 600; color: #f8fafc;"><span style="color: #38bdf8; margin-right: 6px;">#${index + 1}</span> ${p.nombre}</span>
-                                <span style="font-weight: bold; color: #34d399;">${p.cantidad} unidades</span>
+                                <span style="font-weight: 600; color: var(--color-texto);"><span style="color: var(--color-primario-texto); margin-right: 6px;">#${index + 1}</span> ${p.nombre}</span>
+                                <span style="font-weight: bold; color: var(--color-exito);">${p.cantidad} unidades</span>
                             </div>
-                            <div style="width: 100%; background: #1e293b; border-radius: 4px; height: 10px; overflow: hidden;">
-                                <div style="width: ${porcentaje}%; background: linear-gradient(90deg, #2563eb, #38bdf8); height: 100%; border-radius: 4px; transition: width 0.4s ease;"></div>
+                            <div style="width: 100%; background: var(--color-secundario-suave); border-radius: 4px; height: 10px; overflow: hidden;">
+                                <div style="width: ${porcentaje}%; background: linear-gradient(90deg, var(--color-primario), var(--color-acento)); height: 100%; border-radius: 4px; transition: width 0.4s ease;"></div>
                             </div>
                         </div>
                     `;
@@ -1762,7 +1762,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 contenedorTop5.innerHTML = barrasHTML;
                             })
                             .catch(() => {
-                                document.getElementById('contenedor-top5-diario').innerHTML = '<p style="color: #f87171; text-align: center; padding: 15px;">Error al calcular el Top 5 de productos.</p>';
+                                document.getElementById('contenedor-top5-diario').innerHTML = '<p style="color: var(--color-peligro); text-align: center; padding: 15px;">Error al calcular el Top 5 de productos.</p>';
                             });
                     }
 

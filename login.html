@@ -4,10 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Acceso - Ferretería</title>
+    <link rel="stylesheet" href="colores.css">
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #0b0f19;
+            background:
+                radial-gradient(circle at 15% 15%, var(--color-primario-suave), transparent 45%),
+                radial-gradient(circle at 85% 85%, var(--color-secundario-suave), transparent 45%),
+                var(--color-fondo);
             display: flex;
             justify-content: center;
             align-items: center;
@@ -16,15 +20,16 @@
             padding: 16px;
             box-sizing: border-box;
             margin: 0;
-            color: #f3f4f6;
+            color: var(--color-texto);
         }
 
         .login-card {
-            background-color: #111827;
+            background-color: var(--color-superficie);
             padding: 30px;
             border-radius: 12px;
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4), 0 0 1px 1px rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.03);
+            box-shadow: var(--sombra-tarjeta);
+            border: 1px solid var(--color-borde);
+            border-top: 4px solid var(--color-primario);
             width: 100%;
             max-width: 400px;
             transition: transform 0.3s ease, box-shadow 0.3s ease;
@@ -32,12 +37,9 @@
 
         .login-card h2 {
             margin-bottom: 20px;
-            color: #f8fafc;
+            color: var(--color-texto);
             text-align: center;
             font-size: 1.5rem;
-            background: linear-gradient(135deg, #38bdf8, #818cf8);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
         }
 
         .form-group {
@@ -47,7 +49,7 @@
         .form-group label {
             display: block;
             margin-bottom: 5px;
-            color: #94a3b8;
+            color: var(--color-texto-suave);
             font-weight: 500;
             font-size: 0.9rem;
         }
@@ -55,19 +57,19 @@
         .form-group input {
             width: 100%;
             padding: 10px 12px;
-            background-color: #0f172a;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            background-color: var(--color-fondo);
+            border: 1px solid var(--color-borde-fuerte);
             border-radius: 6px;
             box-sizing: border-box;
-            color: #f3f4f6;
+            color: var(--color-texto);
             font-size: 0.95rem;
             transition: border-color 0.2s ease, box-shadow 0.2s ease;
         }
 
         .form-group input:focus {
             outline: none;
-            border-color: #38bdf8;
-            box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.15);
+            border-color: var(--color-primario);
+            box-shadow: 0 0 0 3px var(--color-primario-suave);
         }
 
         /* Contenedor relativo para el input de contraseña y el botón del icono */
@@ -87,7 +89,7 @@
             background: none;
             border: none;
             cursor: pointer;
-            color: #94a3b8;
+            color: var(--color-texto-suave);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -96,25 +98,25 @@
         }
 
         .btn-toggle-password:hover {
-            color: #38bdf8;
+            color: var(--color-primario-texto);
         }
 
         .btn-action {
             width: 100%;
             padding: 12px;
-            background: linear-gradient(135deg, #2563eb, #38bdf8);
-            color: white;
+            background: var(--color-primario-boton);
+            color: var(--color-texto-invertido);
             border: none;
             border-radius: 6px;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.2s ease;
-            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+            box-shadow: var(--sombra-boton);
         }
 
         .btn-action:hover {
-            background: linear-gradient(135deg, #1d4ed8, #0ea5e9);
-            box-shadow: 0 6px 16px rgba(56, 189, 248, 0.4);
+            background: var(--color-primario-hover);
+            box-shadow: 0 6px 16px rgba(216, 27, 116, 0.35);
             transform: translateY(-1px);
         }
 
@@ -122,10 +124,10 @@
             text-align: center;
             margin-top: 15px;
             font-size: 0.9rem;
-            color: #94a3b8;
+            color: var(--color-texto-suave);
         }
 
-        #error-msg { color: #dc2626; }
+        #error-msg { color: var(--color-peligro); }
     </style>
 </head>
 <body>
