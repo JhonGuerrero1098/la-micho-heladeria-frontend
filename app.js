@@ -5,10 +5,44 @@ if (!usuarioActual) {
     window.location.replace('login.html');
 }
 
-// Toda petición a la API se hace sin caché del navegador: después de guardar, los listados
-// se vuelven a pedir y deben traer siempre el estado actual de la base de datos.
+// Toda petición a la API:
+// - va sin caché del navegador (tras guardar, los listados deben traer el estado actual);
+// - lleva "Authorization: Bearer <token>" (la API rechaza con 401 las peticiones sin token);
+// - si la API responde 401 (token vencido o inválido) se cierra la sesión y se vuelve al login.
+const API_BASE = 'https://la-micho-heladeria-backend.onrender.com';
 const fetchOriginal = window.fetch.bind(window);
-window.fetch = (recurso, opciones = {}) => fetchOriginal(recurso, { cache: 'no-store', ...opciones });
+window.fetch = async (recurso, opciones = {}) => {
+    const url = typeof recurso === 'string' ? recurso : recurso.url;
+    if (!url.startsWith(API_BASE)) {
+        return fetchOriginal(recurso, { cache: 'no-store', ...opciones });
+    }
+
+    const cabeceras = new Headers(opciones.headers || {});
+    const token = Sesion.token();
+    if (token) cabeceras.set('Authorization', `Bearer ${token}`);
+
+    const res = await fetchOriginal(recurso, { cache: 'no-store', ...opciones, headers: cabeceras });
+
+    // El login (desbloqueo por inactividad) responde 401 ante contraseña incorrecta: eso no cierra la sesión
+    if (res.status === 401 && !url.includes('/api/Usuarios/Login')) {
+        Sesion.cerrar();
+        alert('Tu sesión expiró o no es válida. Inicia sesión de nuevo.');
+        window.location.replace('login.html');
+    }
+    return res;
+};
+
+// Escapa texto antes de insertarlo con innerHTML / plantillas. Nombres de productos, clientes,
+// categorías, etc. los escribe cualquier usuario: sin escapar, un nombre como
+// <img src=x onerror=...> ejecutaría código en el navegador de quien vea la tabla (XSS).
+function escaparHTML(valor) {
+    return String(valor ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
 
 // UUID v4 para la cabecera X-Idempotency-Key. crypto.randomUUID solo existe en contextos seguros
 // (https o localhost); si no está, se arma con crypto.getRandomValues.
@@ -146,7 +180,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div style="background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.4); width: 100%; max-width: 400px; text-align: center;">
                     <h3 style="color: var(--color-texto); margin-bottom: 10px;">Sesión Bloqueada por Inactividad</h3>
                     <p style="color: var(--color-texto-suave); font-size: 0.9rem; margin-bottom: 20px;">
-                        Han pasado 5 minutos sin actividad. Por seguridad, ingresa tu contraseña para continuar, <b>${usuarioActual.nombreCompleto}</b>.
+                        Han pasado 5 minutos sin actividad. Por seguridad, ingresa tu contraseña para continuar, <b>${escaparHTML(usuarioActual.nombreCompleto)}</b>.
                     </p>
                     <form id="form-desbloqueo" style="display: flex; flex-direction: column; gap: 12px;">
                         
@@ -195,6 +229,9 @@ document.addEventListener('DOMContentLoaded', () => {
             })
                 .then(async res => {
                     if (res.ok) {
+                        // El login devuelve un token nuevo (8 h más): se renueva el de la sesión
+                        const { datos } = await leerRespuesta(res);
+                        if (datos && datos.token) Sesion.guardarToken(datos.token, datos.expiraEn);
                         Sesion.marcarBloqueada(false);
                         document.getElementById('modal-bloqueo-inactividad').remove();
                         reiniciarTemporizadorInactividad();
@@ -281,7 +318,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     sectionTitle.textContent = ' Inicio ';
                     let contenidoDashboard = `
                     <div class="card" style="margin-bottom: 20px;">
-                    <h3>Bienvenido ${usuarioActual.nombreCompleto || 'Usuario'}</h3>
+                    <h3>Bienvenido ${escaparHTML(usuarioActual.nombreCompleto || 'Usuario')}</h3>
                     <p>Selecciona una opcion del menu para iniciar.</p>
                 </div>
             `;
@@ -454,7 +491,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                     categorias.forEach(cat => {
                                         const nombreCat = cat.nombreCategoria || cat.nombre || '';
                                         if (nombreCat) {
-                                            datalist.innerHTML += `<option value="${nombreCat}">`;
+                                            datalist.innerHTML += `<option value="${escaparHTML(nombreCat)}">`;
                                         }
                                     });
                                 }
@@ -495,14 +532,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
                                     tablaHTML += `
                         <tr style="border-bottom: 1px solid var(--color-borde); transition: background 0.2s;">
-                            <td style="padding: 12px; color: var(--color-texto-suave);">${prod.id}</td>
-                            <td style="padding: 12px; font-weight: 500;">${prod.nombre}</td>
-                            <td style="padding: 12px; color: var(--color-exito);">$${prod.precio}</td>
-                            <td style="padding: 12px; ${estiloStock}">${prod.stock}</td>
-                            <td style="padding: 12px; color: var(--color-texto-suave);">${nombreCategoria}</td>
+                            <td style="padding: 12px; color: var(--color-texto-suave);">${escaparHTML(prod.id)}</td>
+                            <td style="padding: 12px; font-weight: 500;">${escaparHTML(prod.nombre)}</td>
+                            <td style="padding: 12px; color: var(--color-exito);">$${escaparHTML(prod.precio)}</td>
+                            <td style="padding: 12px; ${estiloStock}">${escaparHTML(prod.stock)}</td>
+                            <td style="padding: 12px; color: var(--color-texto-suave);">${escaparHTML(nombreCategoria)}</td>
                             <td style="padding: 12px; text-align: center;">
                                 <div style="display: flex; gap: 6px; justify-content: center;">
-                                    <button class="btn-editar" data-id="${prod.id}" data-nombre="${prod.nombre}" data-precio="${prod.precio}" data-stock="${prod.stock}" data-catanombre="${nombreCategoria !== 'General' ? nombreCategoria : ''}" data-descripcion="${prod.descripcion || ''}" style="padding: 6px 12px; background-color: var(--color-secundario); color: var(--color-texto); border: none; border-radius: 6px; cursor: pointer; font-weight: 500;">Editar</button>
+                                    <button class="btn-editar" data-id="${escaparHTML(prod.id)}" data-nombre="${escaparHTML(prod.nombre)}" data-precio="${escaparHTML(prod.precio)}" data-stock="${escaparHTML(prod.stock)}" data-catanombre="${escaparHTML(nombreCategoria !== 'General' ? nombreCategoria : '')}" data-descripcion="${escaparHTML(prod.descripcion || '')}" style="padding: 6px 12px; background-color: var(--color-secundario); color: var(--color-texto); border: none; border-radius: 6px; cursor: pointer; font-weight: 500;">Editar</button>
                                     <button class="btn-eliminar-producto" data-id="${prod.id}" style="padding: 6px 12px; background-color: var(--color-peligro); color: var(--color-texto-invertido); border: none; border-radius: 6px; cursor: pointer; font-weight: 500;">Eliminar</button>
                                 </div>
                             </td>
@@ -810,14 +847,14 @@ document.addEventListener('DOMContentLoaded', () => {
                         clientesAMostrar.forEach(cli => {
                             tablaHTML += `
                 <tr style="border-bottom: 1px solid var(--color-borde); transition: background 0.2s;">
-                    <td style="padding: 12px; color: var(--color-texto-suave);">${cli.id}</td>
-                    <td style="padding: 12px;">${cli.cedula}</td>
-                    <td style="padding: 12px; font-weight: 500;">${cli.nombre}</td>
-                    <td style="padding: 12px; color: var(--color-texto-suave);">${cli.telefono || 'N/A'}</td>
-                    <td style="padding: 12px; color: var(--color-texto-suave);">${cli.email || 'N/A'}</td>
+                    <td style="padding: 12px; color: var(--color-texto-suave);">${escaparHTML(cli.id)}</td>
+                    <td style="padding: 12px;">${escaparHTML(cli.cedula)}</td>
+                    <td style="padding: 12px; font-weight: 500;">${escaparHTML(cli.nombre)}</td>
+                    <td style="padding: 12px; color: var(--color-texto-suave);">${escaparHTML(cli.telefono || 'N/A')}</td>
+                    <td style="padding: 12px; color: var(--color-texto-suave);">${escaparHTML(cli.email || 'N/A')}</td>
                     <td style="padding: 12px; text-align: center;">
                         <div style="display: flex; gap: 6px; justify-content: center;">
-                            <button class="btn-editar-cliente" data-id="${cli.id}" data-cedula="${cli.cedula}" data-nombre="${cli.nombre}" data-telefono="${cli.telefono || ''}" data-email="${cli.email || ''}" data-direccion="${cli.direccion || ''}" style="padding: 6px 12px; background-color: var(--color-secundario); color: var(--color-texto); border: none; border-radius: 6px; cursor: pointer; font-weight: 500;">Editar</button>
+                            <button class="btn-editar-cliente" data-id="${escaparHTML(cli.id)}" data-cedula="${escaparHTML(cli.cedula)}" data-nombre="${escaparHTML(cli.nombre)}" data-telefono="${escaparHTML(cli.telefono || '')}" data-email="${escaparHTML(cli.email || '')}" data-direccion="${escaparHTML(cli.direccion || '')}" style="padding: 6px 12px; background-color: var(--color-secundario); color: var(--color-texto); border: none; border-radius: 6px; cursor: pointer; font-weight: 500;">Editar</button>
                             <button class="btn-eliminar-cliente" data-id="${cli.id}" style="padding: 6px 12px; background-color: var(--color-peligro); color: var(--color-texto-invertido); border: none; border-radius: 6px; cursor: pointer; font-weight: 500;">Eliminar</button>
                         </div>
                     </td>
@@ -1083,7 +1120,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         const datalist = document.getElementById('lista-sugerencias-productos');
                         datalist.innerHTML = '';
                         listaProductos.forEach(p => {
-                            datalist.innerHTML += `<option value="${p.nombre} - $${p.precio} (Stock: ${p.stock})">`;
+                            datalist.innerHTML += `<option value="${escaparHTML(`${p.nombre} - $${p.precio} (Stock: ${p.stock})`)}">`;
                         });
                     }
 
@@ -1304,8 +1341,8 @@ document.addEventListener('DOMContentLoaded', () => {
                                 totalGeneral += subtotal;
                                 tbody.innerHTML += `
                     <tr style="border-bottom: 1px solid var(--color-borde);">
-                        <td style="padding: 10px;">${item.nombre}</td>
-                        <td style="padding: 10px; color: var(--color-exito);">$${item.precioUnitario}</td>
+                        <td style="padding: 10px;">${escaparHTML(item.nombre)}</td>
+                        <td style="padding: 10px; color: var(--color-exito);">$${escaparHTML(item.precioUnitario)}</td>
                         <td style="padding: 10px; text-align: center;">
                             <input type="number" class="input-cambiar-cantidad" data-index="${index}" value="${item.cantidad}" min="1" style="width: 60px; padding: 4px; background: var(--color-fondo); border: 1px solid var(--color-borde); border-radius: 4px; color: var(--color-texto); text-align: center; outline: none;">
                         </td>
@@ -1380,6 +1417,9 @@ document.addEventListener('DOMContentLoaded', () => {
                         });
 
                         btnProcesar.addEventListener('click', () => {
+                            // Un pago en curso ignora cualquier clic adicional (antes de cualquier otra validación)
+                            if (btnProcesar.dataset.enviando === 'true') return;
+
                             const clienteIdRaw = clienteSeleccionadoIdInput.value.trim();
                             const clienteId = clienteIdRaw ? parseInt(clienteIdRaw) : null;
 
@@ -1415,8 +1455,10 @@ document.addEventListener('DOMContentLoaded', () => {
                                 ventaPendiente = { huella: cuerpoVenta, clave: generarUUID() };
                             }
 
-                            // Evita el doble clic mientras Render responde
-                            btnProcesar.disabled = true;
+                            // Bloqueo inmediato contra doble clic / doble cobro mientras Render responde.
+                            // Aun si llegara un segundo envío, la clave de idempotencia evita duplicar la venta.
+                            const liberarPago = bloquearEnvio(btnProcesar, btnProcesar, 'Procesando pago...');
+                            if (!liberarPago) return;
 
                             fetchConReintentos('https://la-micho-heladeria-backend.onrender.com/api/Ventas', {
                                 method: 'POST',
@@ -1457,16 +1499,20 @@ document.addEventListener('DOMContentLoaded', () => {
                                     inputBusquedaCedula.disabled = false;
                                     btnBuscarCliente.disabled = false;
 
-                                    // Se espera la recarga desde el servidor antes del alert (que bloquea la página)
-                                    await cargarDatosPOS();
+                                    // Confirmación inmediata: el stock ya quedó aplicado con productosActualizados.
+                                    // Antes se esperaba recargar TODOS los productos y clientes antes de avisar
+                                    // (dos listados completos más contra Render/Supabase); ahora se refrescan
+                                    // en segundo plano, después del aviso.
+                                    liberarPago();
                                     const avisoRepetida = repetida ? '\n(Esta venta ya se había registrado: no se duplicó.)' : '';
                                     alert(`¡Venta procesada con éxito!\nMétodo: ${metodoSeleccionado}\nCambio a devolver: $${cambio.toFixed(2)}${avisoRepetida}`);
+                                    cargarDatosPOS();
                                 })
                                 .catch(error => {
                                     console.error('Error en POST Venta:', error);
                                     alert('No se pudo confirmar la venta por un problema de conexión.\nPresione "Procesar" de nuevo sin cambiar el carrito: se reenviará con la misma clave y, si ya se había guardado, no se duplicará.');
                                 })
-                                .finally(() => { btnProcesar.disabled = false; });
+                                .finally(liberarPago);
                         });
                     }, 100);
                     break;
@@ -1555,7 +1601,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                             const subtotal = det.cantidad * det.precioUnitario;
                                             totalVenta += subtotal;
                                             const prodNombre = det.idProductoNavigation ? det.idProductoNavigation.nombre : `ID: ${det.idProducto}`;
-                                            listaProductosHTML += `<li style="margin-bottom: 4px;"><strong style="color: var(--color-texto);">${prodNombre}</strong> - Cantidad: ${det.cantidad} | Subtotal: <span style="color: var(--color-primario-texto);">$${subtotal.toFixed(2)}</span></li>`;
+                                            listaProductosHTML += `<li style="margin-bottom: 4px;"><strong style="color: var(--color-texto);">${escaparHTML(prodNombre)}</strong> - Cantidad: ${escaparHTML(det.cantidad)} | Subtotal: <span style="color: var(--color-primario-texto);">$${subtotal.toFixed(2)}</span></li>`;
                                         });
                                     }
                                     listaProductosHTML += '</ul>';
@@ -1742,8 +1788,8 @@ document.addEventListener('DOMContentLoaded', () => {
                             }
                             contenedor.innerHTML = `
                 <div style="background: var(--color-fondo); padding: 18px; border-radius: 8px; border: 1px solid var(--color-borde);">
-                    <h4 style="margin: 0 0 6px 0; color: var(--color-texto); font-size: 1.1rem;">${prod.nombre}</h4>
-                    <p style="margin: 0 0 10px 0; color: var(--color-texto-suave); font-size: 0.9rem;">Categoría: ${prod.categoria || 'General'}</p>
+                    <h4 style="margin: 0 0 6px 0; color: var(--color-texto); font-size: 1.1rem;">${escaparHTML(prod.nombre)}</h4>
+                    <p style="margin: 0 0 10px 0; color: var(--color-texto-suave); font-size: 0.9rem;">Categoría: ${escaparHTML(prod.categoria || 'General')}</p>
                     <p style="margin: 0; font-weight: bold; color: var(--color-exito); font-size: 1rem;">Total histórico: ${data.totalUnidadesVendidas} unidades</p>
                 </div>
             `;
@@ -1770,8 +1816,8 @@ document.addEventListener('DOMContentLoaded', () => {
                                 const prod = data.producto;
                                 contenedor.innerHTML = `
                     <div style="background: var(--color-fondo); padding: 18px; border-radius: 8px; border: 1px solid var(--color-borde);">
-                        <h4 style="margin: 0 0 6px 0; color: var(--color-texto); font-size: 1.1rem;">${prod.nombre}</h4>
-                        <p style="margin: 0 0 10px 0; color: var(--color-texto-suave); font-size: 0.9rem;">Fecha consultada: ${data.fechaConsulta}</p>
+                        <h4 style="margin: 0 0 6px 0; color: var(--color-texto); font-size: 1.1rem;">${escaparHTML(prod.nombre)}</h4>
+                        <p style="margin: 0 0 10px 0; color: var(--color-texto-suave); font-size: 0.9rem;">Fecha consultada: ${escaparHTML(data.fechaConsulta)}</p>
                         <p style="margin: 0; font-weight: bold; color: var(--color-primario-texto); font-size: 1rem;">Vendidos hoy: ${data.totalUnidadesVendidas} unidades</p>
                     </div>
                 `;
@@ -1826,7 +1872,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                     barrasHTML += `
                         <div style="background: var(--color-fondo); padding: 12px 15px; border-radius: 8px; border: 1px solid var(--color-borde);">
                             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; font-size: 0.95rem;">
-                                <span style="font-weight: 600; color: var(--color-texto);"><span style="color: var(--color-primario-texto); margin-right: 6px;">#${index + 1}</span> ${p.nombre}</span>
+                                <span style="font-weight: 600; color: var(--color-texto);"><span style="color: var(--color-primario-texto); margin-right: 6px;">#${index + 1}</span> ${escaparHTML(p.nombre)}</span>
                                 <span style="font-weight: bold; color: var(--color-exito);">${p.cantidad} unidades</span>
                             </div>
                             <div style="width: 100%; background: var(--color-secundario-suave); border-radius: 4px; height: 10px; overflow: hidden;">

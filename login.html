@@ -79,6 +79,10 @@
             });
         }
 
+        // Despierta al servidor de Render (plan gratuito: se duerme tras 15 min sin uso) mientras el
+        // usuario escribe sus credenciales, para que el login y la primera venta no esperen el arranque.
+        fetch('https://la-micho-heladeria-backend.onrender.com/salud', { cache: 'no-store' }).catch(() => {});
+
         // Lógica de Inicio de Sesión
         const formLogin = document.getElementById('form-login');
         const errorMsg = document.getElementById('error-msg');
@@ -101,8 +105,12 @@
                 if (res.ok) {
                     const data = await res.json();
                     
-                    // Guardar la sesión (con vencimiento) y entrar al panel principal
-                    Sesion.iniciar(data.usuario);
+                    // Guardar la sesión y el token (con vencimiento) y entrar al panel principal
+                    if (!data.token) {
+                        errorMsg.textContent = 'El servidor no devolvió un token de sesión. Intente de nuevo en un momento.';
+                        return;
+                    }
+                    Sesion.iniciar(data.usuario, data.token, data.expiraEn);
                     window.location.replace('index.html');
                 } else {
                     const errorText = await res.text();
