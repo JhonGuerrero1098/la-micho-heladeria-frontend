@@ -5,6 +5,10 @@ if (!usuarioActual) {
     window.location.replace('login.html');
 }
 
+// Solo Administrador (1) y Superusuario (3) crean/editan/eliminan productos (precios y stock).
+// El Cajero (2) consulta el inventario en modo lectura. La API aplica la misma regla (403).
+const puedeEditarInventario = !!usuarioActual && (usuarioActual.idRol === 1 || usuarioActual.idRol === 3);
+
 // Toda petición a la API:
 // - va sin caché del navegador (tras guardar, los listados deben traer el estado actual);
 // - lleva "Authorization: Bearer <token>" (la API rechaza con 401 las peticiones sin token);
@@ -430,8 +434,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 case 'inventario':
                     sectionTitle.textContent = 'Inventario de productos';
                     contentBody.innerHTML = `
-        <!-- FORMULARIO PARA AGREGAR NUEVO PRODUCTO -->
-        <div class="card" style="margin-bottom: 20px;">
+        <!-- FORMULARIO PARA AGREGAR NUEVO PRODUCTO (oculto para el Cajero) -->
+        <div class="card" style="margin-bottom: 20px;${puedeEditarInventario ? '' : ' display: none;'}">
             <h3 style="color: var(--color-texto); margin-bottom: 10px;">Registrar Nuevo Producto</h3>
             <form id="form-crear-producto-inventario" style="display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap;">
                 <input type="text" id="nuevo-prod-nombre" placeholder="Nombre del producto" required style="padding: 10px 12px; flex: 1; min-width: 150px; background: var(--color-fondo); border: 1px solid var(--color-borde); border-radius: 6px; color: var(--color-texto); outline: none;">
@@ -473,6 +477,7 @@ document.addEventListener('DOMContentLoaded', () => {
         <!-- TABLA DE PRODUCTOS EN STOCK -->
         <div class="card">
             <h3 style="color: var(--color-texto); margin-bottom: 10px;">Productos en stock</h3>
+            ${puedeEditarInventario ? '' : '<p style="margin: -4px 0 10px; color: var(--color-texto-suave); font-size: 0.9rem;">Modo consulta: solo un Administrador puede cambiar precios y stock.</p>'}
             <div id="contenedor-tabla">
                 <p style="padding: 15px; color: var(--color-texto-suave); text-align: center;">Cargando productos...</p>
             </div>
@@ -520,7 +525,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                     <th style="padding: 12px;">Precio</th>
                                     <th style="padding: 12px;">Stock</th>
                                     <th style="padding: 12px;">Categoría</th>
-                                    <th style="padding: 12px; text-align: center;">Acciones</th>
+                                    ${puedeEditarInventario ? '<th style="padding: 12px; text-align: center;">Acciones</th>' : ''}
                                 </tr>
                             </thead>
                             <tbody>
@@ -537,12 +542,12 @@ document.addEventListener('DOMContentLoaded', () => {
                             <td style="padding: 12px; color: var(--color-exito);">$${escaparHTML(prod.precio)}</td>
                             <td style="padding: 12px; ${estiloStock}">${escaparHTML(prod.stock)}</td>
                             <td style="padding: 12px; color: var(--color-texto-suave);">${escaparHTML(nombreCategoria)}</td>
-                            <td style="padding: 12px; text-align: center;">
+                            ${puedeEditarInventario ? `<td style="padding: 12px; text-align: center;">
                                 <div style="display: flex; gap: 6px; justify-content: center;">
                                     <button class="btn-editar" data-id="${escaparHTML(prod.id)}" data-nombre="${escaparHTML(prod.nombre)}" data-precio="${escaparHTML(prod.precio)}" data-stock="${escaparHTML(prod.stock)}" data-catanombre="${escaparHTML(nombreCategoria !== 'General' ? nombreCategoria : '')}" data-descripcion="${escaparHTML(prod.descripcion || '')}" style="padding: 6px 12px; background-color: var(--color-secundario); color: var(--color-texto); border: none; border-radius: 6px; cursor: pointer; font-weight: 500;">Editar</button>
                                     <button class="btn-eliminar-producto" data-id="${prod.id}" style="padding: 6px 12px; background-color: var(--color-peligro); color: var(--color-texto-invertido); border: none; border-radius: 6px; cursor: pointer; font-weight: 500;">Eliminar</button>
                                 </div>
-                            </td>
+                            </td>` : ''}
                         </tr>
                     `;
                                 });
