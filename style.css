@@ -369,20 +369,16 @@ summary {
 
 /* =========================================================
    PANTALLA DE LOGIN (login.html → <body class="pagina-login">)
-   El logo de La Micho va detrás de la tarjeta (z-index menor) y
-   se asoma por arriba; en escritorio también por el lateral.
+   El logo de La Micho va detrás de la tarjeta (z-index menor),
+   estático y centrado sobre su borde superior en todos los tamaños.
    Solo el borde inferior del logo queda tapado: el letrero
    "La Micho" siempre se ve completo y nunca cubre el formulario.
    ========================================================= */
 .pagina-login {
     --logo-size: clamp(150px, 44vw, 210px);
-    --logo-x: -50%;
-    --logo-rot: -5deg;
-    background:
-        radial-gradient(circle at 12% 10%, var(--color-primario-suave), transparent 42%),
-        radial-gradient(circle at 88% 88%, var(--color-secundario-suave), transparent 45%),
-        radial-gradient(circle at 90% 8%, var(--color-acento-suave), transparent 30%),
-        var(--color-fondo);
+    /* Azul cielo → rosa → amarillo: más saturado para que la tarjeta blanca y el logo resalten */
+    background: var(--fondo-login);
+    background-attachment: fixed;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -410,15 +406,9 @@ summary {
     height: auto;
     border-radius: 50%;
     filter: drop-shadow(var(--sombra-logo));
-    transform: translateX(var(--logo-x)) rotate(var(--logo-rot));
-    animation: logo-flotar 5s ease-in-out infinite;
+    transform: translateX(-50%);
     pointer-events: none;
     user-select: none;
-}
-
-@keyframes logo-flotar {
-    0%, 100% { transform: translate(var(--logo-x), 0) rotate(var(--logo-rot)); }
-    50%      { transform: translate(var(--logo-x), -6px) rotate(calc(var(--logo-rot) + 2deg)); }
 }
 
 .login-card {
@@ -567,44 +557,22 @@ summary {
     }
 }
 
-/* Escritorio: logo más grande, asomándose por arriba y por el lateral izquierdo */
+/* Escritorio: logo un poco más grande, igual de centrado */
 @media (min-width: 900px) and (min-height: 640px) {
     .pagina-login {
         --logo-size: 250px;
-        --logo-x: -38%;
-        --logo-rot: -9deg;
-    }
-    .login-logo {
-        left: 0;
     }
 }
 
-/* Celular/tablet en horizontal (poca altura): logo al lado de la tarjeta */
+/* Celular/tablet en horizontal (poca altura): logo más pequeño para que quepa el formulario */
 @media (max-height: 560px) and (orientation: landscape) {
     .pagina-login {
-        --logo-size: min(190px, 60vh);
-        --logo-x: 0;
-        --logo-rot: -6deg;
-    }
-    .login-escena {
-        padding-top: 0;
-        margin-left: calc(var(--logo-size) * 0.95);
-    }
-    .login-logo {
-        top: 50%;
-        left: calc(var(--logo-size) * -0.95);
-        margin-top: calc(var(--logo-size) / -2);
+        --logo-size: min(130px, 34vh);
     }
     .login-card {
         padding: 18px 22px;
     }
     .login-subtitulo {
         margin-bottom: 12px;
-    }
-}
-
-@media (prefers-reduced-motion: reduce) {
-    .login-logo {
-        animation: none;
     }
 }
