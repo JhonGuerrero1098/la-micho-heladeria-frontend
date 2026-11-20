@@ -278,7 +278,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // Cambiar el título superior y el contenido según la opción
             switch (section) {
                 case 'Inicio':
-                    sectionTitle.textContent = '/ Inicio /';
+                    sectionTitle.textContent = ' Inicio ';
                     let contenidoDashboard = `
                     <div class="card" style="margin-bottom: 20px;">
                     <h3>Bienvenido ${usuarioActual.nombreCompleto || 'Usuario'}</h3>
