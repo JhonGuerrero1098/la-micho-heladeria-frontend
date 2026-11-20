@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Acceso - Ferretería</title>
     <link rel="stylesheet" href="colores.css">
+    <link rel="stylesheet" href="style.css">
     <script src="sesion.js"></script>
     <script>
         // Si ya hay una sesión válida, no se pide login otra vez
@@ -12,137 +13,18 @@
             window.location.replace('index.html');
         }
     </script>
-    <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background:
-                radial-gradient(circle at 15% 15%, var(--color-primario-suave), transparent 45%),
-                radial-gradient(circle at 85% 85%, var(--color-secundario-suave), transparent 45%),
-                var(--color-fondo);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            min-height: 100dvh;
-            padding: 16px;
-            box-sizing: border-box;
-            margin: 0;
-            color: var(--color-texto);
-        }
-
-        .login-card {
-            background-color: var(--color-superficie);
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: var(--sombra-tarjeta);
-            border: 1px solid var(--color-borde);
-            border-top: 4px solid var(--color-primario);
-            width: 100%;
-            max-width: 400px;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-
-        .login-card h2 {
-            margin-bottom: 20px;
-            color: var(--color-texto);
-            text-align: center;
-            font-size: 1.5rem;
-        }
-
-        .form-group {
-            margin-bottom: 15px;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 5px;
-            color: var(--color-texto-suave);
-            font-weight: 500;
-            font-size: 0.9rem;
-        }
-
-        .form-group input {
-            width: 100%;
-            padding: 10px 12px;
-            background-color: var(--color-fondo);
-            border: 1px solid var(--color-borde-fuerte);
-            border-radius: 6px;
-            box-sizing: border-box;
-            color: var(--color-texto);
-            font-size: 0.95rem;
-            transition: border-color 0.2s ease, box-shadow 0.2s ease;
-        }
-
-        .form-group input:focus {
-            outline: none;
-            border-color: var(--color-primario);
-            box-shadow: 0 0 0 3px var(--color-primario-suave);
-        }
-
-        /* Contenedor relativo para el input de contraseña y el botón del icono */
-        .password-container {
-            position: relative;
-            display: flex;
-            align-items: center;
-        }
-
-        .password-container input {
-            padding-right: 40px; /* Espacio para que el texto no quede debajo del icono */
-        }
-
-        .btn-toggle-password {
-            position: absolute;
-            right: 10px;
-            background: none;
-            border: none;
-            cursor: pointer;
-            color: var(--color-texto-suave);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 0;
-            transition: color 0.2s ease;
-        }
-
-        .btn-toggle-password:hover {
-            color: var(--color-primario-texto);
-        }
-
-        .btn-action {
-            width: 100%;
-            padding: 12px;
-            background: var(--color-primario-boton);
-            color: var(--color-texto-invertido);
-            border: none;
-            border-radius: 6px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            box-shadow: var(--sombra-boton);
-        }
-
-        .btn-action:hover {
-            background: var(--color-primario-hover);
-            box-shadow: 0 6px 16px rgba(216, 27, 116, 0.35);
-            transform: translateY(-1px);
-        }
-
-        .msg {
-            text-align: center;
-            margin-top: 15px;
-            font-size: 0.9rem;
-            color: var(--color-texto-suave);
-        }
-
-        #error-msg { color: var(--color-peligro); }
-    </style>
 </head>
-<body>
+<body class="pagina-login">
+
+    <main class="login-escena">
+    <!-- Logo detrás de la tarjeta: se asoma por arriba (y por el lateral en escritorio) -->
+    <img class="login-logo" src="./lamichologo.png" alt="Logo de La Micho Heladería" width="400" height="400">
 
     <div class="login-card">
         <!-- FORMULARIO DE LOGIN -->
         <div id="seccion-login">
             <h2>Iniciar Sesión</h2>
+            <p class="login-subtitulo">Heladería La Micho</p>
             <form id="form-login">
                 <div class="form-group">
                     <label for="login-email">Correo Electrónico</label>
@@ -174,6 +56,7 @@
             </form>
         </div>
     </div>
+    </main>
 
     <script>
         // Lógica para alternar la visibilidad de la contraseña y cambiar entre los iconos SVG

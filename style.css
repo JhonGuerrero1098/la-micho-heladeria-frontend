@@ -366,3 +366,245 @@ summary {
         flex: 1;
     }
 }
+
+/* =========================================================
+   PANTALLA DE LOGIN (login.html → <body class="pagina-login">)
+   El logo de La Micho va detrás de la tarjeta (z-index menor) y
+   se asoma por arriba; en escritorio también por el lateral.
+   Solo el borde inferior del logo queda tapado: el letrero
+   "La Micho" siempre se ve completo y nunca cubre el formulario.
+   ========================================================= */
+.pagina-login {
+    --logo-size: clamp(150px, 44vw, 210px);
+    --logo-x: -50%;
+    --logo-rot: -5deg;
+    background:
+        radial-gradient(circle at 12% 10%, var(--color-primario-suave), transparent 42%),
+        radial-gradient(circle at 88% 88%, var(--color-secundario-suave), transparent 45%),
+        radial-gradient(circle at 90% 8%, var(--color-acento-suave), transparent 30%),
+        var(--color-fondo);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    min-height: 100dvh;
+    padding: 16px;
+    color: var(--color-texto);
+    overflow-x: hidden;
+}
+
+.login-escena {
+    position: relative;
+    width: 100%;
+    max-width: 400px;
+    /* Reserva el alto del logo menos la franja que se esconde tras la tarjeta */
+    padding-top: calc(var(--logo-size) * 0.86);
+}
+
+.login-logo {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    z-index: 0;
+    width: var(--logo-size);
+    height: auto;
+    border-radius: 50%;
+    filter: drop-shadow(var(--sombra-logo));
+    transform: translateX(var(--logo-x)) rotate(var(--logo-rot));
+    animation: logo-flotar 5s ease-in-out infinite;
+    pointer-events: none;
+    user-select: none;
+}
+
+@keyframes logo-flotar {
+    0%, 100% { transform: translate(var(--logo-x), 0) rotate(var(--logo-rot)); }
+    50%      { transform: translate(var(--logo-x), -6px) rotate(calc(var(--logo-rot) + 2deg)); }
+}
+
+.login-card {
+    position: relative;
+    z-index: 1;
+    background-color: var(--color-superficie);
+    padding: 30px;
+    border-radius: 14px;
+    box-shadow: var(--sombra-tarjeta), 0 -6px 18px rgba(62, 39, 35, 0.08);
+    border: 1px solid var(--color-borde);
+    border-top: 4px solid var(--color-primario);
+    width: 100%;
+}
+
+.login-card h2 {
+    color: var(--color-texto);
+    text-align: center;
+    font-size: 1.5rem;
+}
+
+.login-subtitulo {
+    text-align: center;
+    color: var(--color-primario-texto);
+    font-weight: 600;
+    font-size: 0.9rem;
+    margin: 4px 0 20px;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    color: var(--color-texto-suave);
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 10px 12px;
+    background-color: var(--color-fondo);
+    border: 1px solid var(--color-borde-fuerte);
+    border-radius: 6px;
+    color: var(--color-texto);
+    font-size: 0.95rem;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.form-group input::placeholder {
+    color: var(--color-texto-placeholder);
+}
+
+.form-group input:focus {
+    outline: none;
+    border-color: var(--color-primario);
+    box-shadow: 0 0 0 3px var(--color-primario-suave);
+}
+
+/* Contenedor relativo para el input de contraseña y el botón del icono */
+.password-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.password-container input {
+    padding-right: 40px; /* Espacio para que el texto no quede debajo del icono */
+}
+
+.btn-toggle-password {
+    position: absolute;
+    right: 10px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--color-texto-suave);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    transition: color 0.2s ease;
+}
+
+.btn-toggle-password:hover {
+    color: var(--color-primario-texto);
+}
+
+.btn-action {
+    width: 100%;
+    margin-top: 5px;
+    padding: 12px;
+    background: var(--color-primario-boton);
+    color: var(--color-texto-invertido);
+    border: none;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: var(--sombra-boton);
+}
+
+.btn-action:hover {
+    background: var(--color-primario-hover);
+    box-shadow: 0 6px 16px rgba(216, 27, 116, 0.35);
+    transform: translateY(-1px);
+}
+
+.btn-action:focus-visible {
+    outline: 3px solid var(--color-acento);
+    outline-offset: 2px;
+}
+
+.msg {
+    text-align: center;
+    margin-top: 15px;
+    font-size: 0.9rem;
+    color: var(--color-texto-suave);
+}
+
+#error-msg {
+    color: var(--color-peligro);
+}
+
+#error-msg:empty {
+    display: none;
+}
+
+/* Celulares: inputs a 16px para evitar el zoom de iOS */
+@media (max-width: 600px) {
+    .login-card {
+        padding: 24px 20px;
+    }
+    .form-group input {
+        font-size: 16px;
+    }
+}
+
+/* Tablets */
+@media (min-width: 601px) {
+    .pagina-login {
+        --logo-size: 230px;
+    }
+}
+
+/* Escritorio: logo más grande, asomándose por arriba y por el lateral izquierdo */
+@media (min-width: 900px) and (min-height: 640px) {
+    .pagina-login {
+        --logo-size: 250px;
+        --logo-x: -38%;
+        --logo-rot: -9deg;
+    }
+    .login-logo {
+        left: 0;
+    }
+}
+
+/* Celular/tablet en horizontal (poca altura): logo al lado de la tarjeta */
+@media (max-height: 560px) and (orientation: landscape) {
+    .pagina-login {
+        --logo-size: min(190px, 60vh);
+        --logo-x: 0;
+        --logo-rot: -6deg;
+    }
+    .login-escena {
+        padding-top: 0;
+        margin-left: calc(var(--logo-size) * 0.95);
+    }
+    .login-logo {
+        top: 50%;
+        left: calc(var(--logo-size) * -0.95);
+        margin-top: calc(var(--logo-size) / -2);
+    }
+    .login-card {
+        padding: 18px 22px;
+    }
+    .login-subtitulo {
+        margin-bottom: 12px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .login-logo {
+        animation: none;
+    }
+}
