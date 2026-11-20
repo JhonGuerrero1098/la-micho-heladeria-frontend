@@ -169,6 +169,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const nombreRol = usuarioActual.idRol === 3 ? 'Superusuario' : (usuarioActual.idRol === 2 ? 'Cajero' : 'Administrador');
     console.log(`Usuario conectado con éxito: ${usuarioActual.nombreCompleto} (Rol: ${nombreRol})`);
 
+    // Etiqueta superior derecha: nombre y rol de quien inició sesión (antes era un texto fijo).
+    // textContent: el nombre viene de la base de datos y nunca se interpreta como HTML.
+    const etiquetaUsuario = document.getElementById('usuario-sesion');
+    if (etiquetaUsuario) {
+        const nombre = (usuarioActual.nombreCompleto || '').trim();
+        etiquetaUsuario.textContent = nombre ? `${nombre} · ${nombreRol}` : `La Micho ${nombreRol}`;
+        etiquetaUsuario.title = `${nombre || 'Usuario'} (${nombreRol}) · La Micho Heladería`;
+    }
+
     // --- CONFIGURACIÓN DE INACTIVIDAD (5 MINUTOS) ---
     let temporizadorInactividad;
     const TIEMPO_INACTIVIDAD_MS = 5 * 60 * 1000; // 5 minutos
