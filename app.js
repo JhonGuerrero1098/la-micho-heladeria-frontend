@@ -1101,7 +1101,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 <div style="background-color: var(--color-fondo); padding: 15px; border-radius: 8px; margin-bottom: 15px; border: 1px solid var(--color-borde);">
                     <h4 style="margin: 0 0 10px 0; color: var(--color-texto);">Resumen y Pago</h4>
-                    <p style="font-size: 1.2rem; font-weight: bold; margin: 0 0 12px 0; color: var(--color-primario-texto);">Total: $<span id="span-total">0.00</span></p>
+                    <p style="font-size: 1.2rem; font-weight: bold; margin: 0 0 12px 0; color: var(--color-primario-texto);">Total: $<span id="span-total">0</span></p>
                     
                     <div style="margin-bottom: 10px;">
                         <label style="display: block; font-size: 0.85rem; margin-bottom: 4px; font-weight: 500; color: var(--color-texto-suave);">Método de Pago:</label>
@@ -1115,7 +1115,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <input type="number" id="input-monto-pago" placeholder="0.00" style="width: 100%; padding: 9px; background: var(--color-superficie); border: 1px solid var(--color-borde); border-radius: 6px; color: var(--color-texto); box-sizing: border-box; outline: none;" min="0" step="0.01">
                     </div>
                     
-                    <p style="font-size: 1rem; font-weight: bold; margin: 12px 0 0 0; color: var(--color-exito);">Cambio (Vueltos): $<span id="span-cambio">0.00</span></p>
+                    <p style="font-size: 1rem; font-weight: bold; margin: 12px 0 0 0; color: var(--color-exito);">Cambio (Vueltos): $<span id="span-cambio">0</span></p>
                 </div>
                 <button type="button" id="btn-procesar-venta" style="width: 100%; padding: 12px; background: var(--color-primario-boton); color: var(--color-texto-invertido); border: none; border-radius: 6px; font-weight: 600; cursor: pointer; margin-bottom: 8px; box-shadow: var(--sombra-boton);">Procesar Venta</button>
                 <button type="button" id="btn-cancelar-venta" style="width: 100%; padding: 10px; background-color: var(--color-superficie); color: var(--color-texto); border: 1px solid var(--color-borde-fuerte); border-radius: 6px; font-weight: 600; cursor: pointer;">Cancelar Venta</button>
@@ -1196,11 +1196,16 @@ document.addEventListener('DOMContentLoaded', () => {
                             }
                         });
 
+                        // Montos del POS sin decimales (pesos enteros): 25000 en vez de 25000.00
+                        function formatearMonto(valor) {
+                            return String(Math.round(Number(valor) || 0));
+                        }
+
                         function calcularCambio() {
                             const totalGeneral = carrito.reduce((acc, item) => acc + (item.precioUnitario * item.cantidad), 0);
                             const montoPagado = parseFloat(inputMontoPago.value) || 0;
                             const cambio = montoPagado - totalGeneral;
-                            spanCambio.textContent = cambio >= 0 ? cambio.toFixed(2) : '0.00';
+                            spanCambio.textContent = cambio >= 0 ? formatearMonto(cambio) : '0';
                         }
 
                         inputMontoPago.addEventListener('input', calcularCambio);
@@ -1344,8 +1349,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
                             if (carrito.length === 0) {
                                 tbody.innerHTML = '<tr><td colspan="5" style="padding: 15px; text-align: center; color: var(--color-texto-suave);">No hay productos en el carrito.</td></tr>';
-                                spanTotal.textContent = '0.00';
-                                spanCambio.textContent = '0.00';
+                                spanTotal.textContent = '0';
+                                spanCambio.textContent = '0';
                                 return;
                             }
 
@@ -1360,7 +1365,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <td style="padding: 10px; text-align: center;">
                             <input type="number" class="input-cambiar-cantidad" data-index="${index}" value="${item.cantidad}" min="1" style="width: 60px; padding: 4px; background: var(--color-fondo); border: 1px solid var(--color-borde); border-radius: 4px; color: var(--color-texto); text-align: center; outline: none;">
                         </td>
-                        <td style="padding: 10px; color: var(--color-primario-texto);">$${subtotal.toFixed(2)}</td>
+                        <td style="padding: 10px; color: var(--color-primario-texto);">$${formatearMonto(subtotal)}</td>
                         <td style="padding: 10px; text-align: center;">
                             <button type="button" class="btn-eliminar-item" data-index="${index}" style="padding: 5px 10px; background-color: var(--color-peligro); color: var(--color-texto-invertido); border: none; border-radius: 6px; cursor: pointer; font-weight: 500;">Quitar</button>
                         </td>
@@ -1368,7 +1373,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 `;
                             });
 
-                            spanTotal.textContent = totalGeneral.toFixed(2);
+                            spanTotal.textContent = formatearMonto(totalGeneral);
                             calcularCambio();
 
                             document.querySelectorAll('.input-cambiar-cantidad').forEach(input => {
@@ -1424,7 +1429,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 productoSeleccionadoIdInput.value = '';
                                 document.getElementById('cantidad-producto').value = '1';
                                 inputMontoPago.value = '';
-                                spanCambio.textContent = '0.00';
+                                spanCambio.textContent = '0';
 
                                 alert('Venta cancelada con éxito.');
                             }
@@ -1519,7 +1524,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                     // en segundo plano, después del aviso.
                                     liberarPago();
                                     const avisoRepetida = repetida ? '\n(Esta venta ya se había registrado: no se duplicó.)' : '';
-                                    alert(`¡Venta procesada con éxito!\nMétodo: ${metodoSeleccionado}\nCambio a devolver: $${cambio.toFixed(2)}${avisoRepetida}`);
+                                    alert(`¡Venta procesada con éxito!\nMétodo: ${metodoSeleccionado}\nCambio a devolver: $${formatearMonto(cambio)}${avisoRepetida}`);
                                     cargarDatosPOS();
                                 })
                                 .catch(error => {
