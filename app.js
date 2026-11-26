@@ -48,6 +48,18 @@ function escaparHTML(valor) {
         .replace(/'/g, '&#39;');
 }
 
+// Formato único de moneda (POS e historial): pesos colombianos enteros con punto de miles (25.000)
+const formatoMonedaCO = new Intl.NumberFormat('es-CO', { maximumFractionDigits: 0 });
+function formatearMonto(valor) {
+    return formatoMonedaCO.format(Math.round(Number(valor) || 0));
+}
+
+// Inverso del formato visual: "50.000" -> 50000 (number). Solo se conservan los dígitos.
+function desformatearMonto(texto) {
+    const digitos = String(texto ?? '').replace(/\D/g, '');
+    return digitos ? Number(digitos) : 0;
+}
+
 // UUID v4 para la cabecera X-Idempotency-Key. crypto.randomUUID solo existe en contextos seguros
 // (https o localhost); si no está, se arma con crypto.getRandomValues.
 function generarUUID() {
@@ -1112,7 +1124,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         </select>
 
                         <label style="display: block; font-size: 0.85rem; margin-bottom: 4px; font-weight: 500; color: var(--color-texto-suave);">Monto Recibido / Pagado:</label>
-                        <input type="number" id="input-monto-pago" placeholder="0.00" style="width: 100%; padding: 9px; background: var(--color-superficie); border: 1px solid var(--color-borde); border-radius: 6px; color: var(--color-texto); box-sizing: border-box; outline: none;" min="0" step="0.01">
+                        <input type="text" inputmode="numeric" autocomplete="off" id="input-monto-pago" placeholder="0" style="width: 100%; padding: 9px; background: var(--color-superficie); border: 1px solid var(--color-borde); border-radius: 6px; color: var(--color-texto); box-sizing: border-box; outline: none;">
                     </div>
                     
                     <p style="font-size: 1rem; font-weight: bold; margin: 12px 0 0 0; color: var(--color-exito);">Cambio (Vueltos): $<span id="span-cambio">0</span></p>
@@ -1196,19 +1208,29 @@ document.addEventListener('DOMContentLoaded', () => {
                             }
                         });
 
-                        // Montos del POS sin decimales (pesos enteros): 25000 en vez de 25000.00
-                        function formatearMonto(valor) {
-                            return String(Math.round(Number(valor) || 0));
-                        }
-
                         function calcularCambio() {
                             const totalGeneral = carrito.reduce((acc, item) => acc + (item.precioUnitario * item.cantidad), 0);
-                            const montoPagado = parseFloat(inputMontoPago.value) || 0;
+                            const montoPagado = desformatearMonto(inputMontoPago.value);
                             const cambio = montoPagado - totalGeneral;
                             spanCambio.textContent = cambio >= 0 ? formatearMonto(cambio) : '0';
                         }
 
-                        inputMontoPago.addEventListener('input', calcularCambio);
+                        // Mientras el cajero escribe, el campo se muestra con puntos de miles (50.000)
+                        // y el cursor se mantiene detrás del mismo dígito.
+                        inputMontoPago.addEventListener('input', () => {
+                            const cursor = inputMontoPago.selectionStart ?? inputMontoPago.value.length;
+                            const digitosAntesCursor = inputMontoPago.value.slice(0, cursor).replace(/\D/g, '').length;
+                            const digitos = inputMontoPago.value.replace(/\D/g, '');
+                            inputMontoPago.value = digitos ? formatearMonto(Number(digitos)) : '';
+
+                            let nuevaPos = 0;
+                            for (let vistos = 0; nuevaPos < inputMontoPago.value.length && vistos < digitosAntesCursor; nuevaPos++) {
+                                if (/\d/.test(inputMontoPago.value[nuevaPos])) vistos++;
+                            }
+                            inputMontoPago.setSelectionRange(nuevaPos, nuevaPos);
+
+                            calcularCambio();
+                        });
 
                         btnBuscarCliente.addEventListener('click', () => {
                             const cedulaBuscada = inputBusquedaCedula.value.trim();
@@ -1361,7 +1383,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 tbody.innerHTML += `
                     <tr style="border-bottom: 1px solid var(--color-borde);">
                         <td style="padding: 10px;">${escaparHTML(item.nombre)}</td>
-                        <td style="padding: 10px; color: var(--color-exito);">$${escaparHTML(item.precioUnitario)}</td>
+                        <td style="padding: 10px; color: var(--color-exito);">$${formatearMonto(item.precioUnitario)}</td>
                         <td style="padding: 10px; text-align: center;">
                             <input type="number" class="input-cambiar-cantidad" data-index="${index}" value="${item.cantidad}" min="1" style="width: 60px; padding: 4px; background: var(--color-fondo); border: 1px solid var(--color-borde); border-radius: 4px; color: var(--color-texto); text-align: center; outline: none;">
                         </td>
@@ -1448,7 +1470,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             }
 
                             const totalGeneral = carrito.reduce((acc, item) => acc + (item.precioUnitario * item.cantidad), 0);
-                            const montoPagado = parseFloat(inputMontoPago.value) || 0;
+                            const montoPagado = desformatearMonto(inputMontoPago.value);
                             const metodoSeleccionado = selectMetodoPago.value;
 
                             if (montoPagado < totalGeneral) {
@@ -1543,22 +1565,22 @@ document.addEventListener('DOMContentLoaded', () => {
       <!-- Tarjeta del Gran Total Global -->
         <div class="card" style="margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; background: linear-gradient(135deg, var(--color-primario-suave), var(--color-secundario-suave));">
             <h3 style="color: var(--color-texto); margin: 0; font-size: 1.1rem;"> Ventas del Día</h3>
-            <span id="total-ventas-dia" style="color: var(--color-primario-texto); font-size: 1.4rem; font-weight: bold;">$0.00</span>
+            <span id="total-ventas-dia" style="color: var(--color-primario-texto); font-size: 1.4rem; font-weight: bold;">$0</span>
         </div>
 
         <!-- Tarjetas de resumen desglosadas por método de pago -->
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px;">
             <div class="card" style="margin-bottom: 0; padding: 15px; border-left: 4px solid var(--color-secundario-fuerte);">
                 <span style="font-size: 0.85rem; color: var(--color-texto-suave); font-weight: 500;">Total Efectivo</span>
-                <div id="total-efectivo" style="font-size: 1.3rem; font-weight: bold; color: var(--color-texto); margin-top: 5px;">$0.00</div>
+                <div id="total-efectivo" style="font-size: 1.3rem; font-weight: bold; color: var(--color-texto); margin-top: 5px;">$0</div>
             </div>
             <div class="card" style="margin-bottom: 0; padding: 15px; border-left: 4px solid var(--color-primario);">
                 <span style="font-size: 0.85rem; color: var(--color-texto-suave); font-weight: 500;">Total Transferencia</span>
-                <div id="total-transferencia" style="font-size: 1.3rem; font-weight: bold; color: var(--color-texto); margin-top: 5px;">$0.00</div>
+                <div id="total-transferencia" style="font-size: 1.3rem; font-weight: bold; color: var(--color-texto); margin-top: 5px;">$0</div>
             </div>
             <div class="card" style="margin-bottom: 0; padding: 15px; border-left: 4px solid var(--color-acento);">
                 <span style="font-size: 0.85rem; color: var(--color-texto-suave); font-weight: 500;">Total Datáfono</span>
-                <div id="total-datafono" style="font-size: 1.3rem; font-weight: bold; color: var(--color-texto); margin-top: 5px;">$0.00</div>
+                <div id="total-datafono" style="font-size: 1.3rem; font-weight: bold; color: var(--color-texto); margin-top: 5px;">$0</div>
             </div>
         </div>
 
@@ -1587,10 +1609,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
                                 if (!ventas || ventas.length === 0) {
                                     contenedor.innerHTML = '<p style="padding: 15px; text-align: center; color: var(--color-texto-suave);">No se han registrado ventas el día de hoy.</p>';
-                                    spanTotalDia.textContent = '$0.00';
-                                    spanEfectivo.textContent = '$0.00';
-                                    spanTransferencia.textContent = '$0.00';
-                                    spanDatafono.textContent = '$0.00';
+                                    spanTotalDia.textContent = '$0';
+                                    spanEfectivo.textContent = '$0';
+                                    spanTransferencia.textContent = '$0';
+                                    spanDatafono.textContent = '$0';
                                     return;
                                 }
 
@@ -1620,7 +1642,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                             const subtotal = det.cantidad * det.precioUnitario;
                                             totalVenta += subtotal;
                                             const prodNombre = det.idProductoNavigation ? det.idProductoNavigation.nombre : `ID: ${det.idProducto}`;
-                                            listaProductosHTML += `<li style="margin-bottom: 4px;"><strong style="color: var(--color-texto);">${escaparHTML(prodNombre)}</strong> - Cantidad: ${escaparHTML(det.cantidad)} | Subtotal: <span style="color: var(--color-primario-texto);">$${subtotal.toFixed(2)}</span></li>`;
+                                            listaProductosHTML += `<li style="margin-bottom: 4px;"><strong style="color: var(--color-texto);">${escaparHTML(prodNombre)}</strong> - Cantidad: ${escaparHTML(det.cantidad)} | Subtotal: <span style="color: var(--color-primario-texto);">$${formatearMonto(subtotal)}</span></li>`;
                                         });
                                     }
                                     listaProductosHTML += '</ul>';
@@ -1656,10 +1678,10 @@ document.addEventListener('DOMContentLoaded', () => {
                                 });
 
                                 // Actualizamos las tarjetas superiores
-                                spanEfectivo.textContent = `$${totalesGrupo['Efectivo'].toFixed(2)}`;
-                                spanTransferencia.textContent = `$${totalesGrupo['Transferencia'].toFixed(2)}`;
-                                spanDatafono.textContent = `$${totalesGrupo['Datáfono'].toFixed(2)}`;
-                                spanTotalDia.textContent = `$${granTotalGlobal.toFixed(2)}`;
+                                spanEfectivo.textContent = `$${formatearMonto(totalesGrupo['Efectivo'])}`;
+                                spanTransferencia.textContent = `$${formatearMonto(totalesGrupo['Transferencia'])}`;
+                                spanDatafono.textContent = `$${formatearMonto(totalesGrupo['Datáfono'])}`;
+                                spanTotalDia.textContent = `$${formatearMonto(granTotalGlobal)}`;
 
                                 // Construimos las listas desplegables principales por método de pago
                                 let htmlDesglose = '<div style="display: flex; flex-direction: column; gap: 12px;">';
@@ -1677,7 +1699,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <details style="background: var(--color-fondo); border: 1px solid var(--color-borde); border-radius: 8px; overflow: hidden; border-left: 4px solid ${colorBorde};">
                             <summary style="padding: 14px 18px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-weight: 600; color: var(--color-texto); user-select: none; background: var(--color-superficie);">
                                 <span>${metodo} <span style="font-size: 0.85rem; color: var(--color-texto-suave); font-weight: normal; margin-left: 8px;">(${listaVentas.length} transacciones)</span></span>
-                                <span style="color: var(--color-texto); font-size: 1.05rem;">$${subtotalMetodo.toFixed(2)} ▼</span>
+                                <span style="color: var(--color-texto); font-size: 1.05rem;">$${formatearMonto(subtotalMetodo)} ▼</span>
                             </summary>
                             <div class="tabla-responsive" style="padding: 15px 20px; border-top: 1px solid var(--color-borde); background: var(--color-fondo);">
                     `;
@@ -1703,7 +1725,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 <tr style="border-bottom: 1px solid var(--color-borde);">
                                     <td style="padding: 10px 8px; color: var(--color-texto-suave);">#${item.id}</td>
                                     <td style="padding: 10px 8px; color: var(--color-texto);">${item.hora}</td>
-                                    <td style="padding: 10px 8px; text-align: right; font-weight: 600; color: var(--color-exito);">$${item.total.toFixed(2)}</td>
+                                    <td style="padding: 10px 8px; text-align: right; font-weight: 600; color: var(--color-exito);">$${formatearMonto(item.total)}</td>
                                     <td style="padding: 10px 8px; text-align: center;">
                                         <button class="btn-desplegar-detalle" data-id="${item.id}" style="background-color: var(--color-secundario); color: var(--color-texto); border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8rem;">Ver Detalle ▼</button>
                                     </td>
@@ -1722,7 +1744,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             </table>
                             <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 12px; padding-top: 10px; border-top: 1px dashed var(--color-borde); font-weight: bold;">
                                 <span style="color: var(--color-texto-suave); font-size: 0.9rem;">Subtotal ${metodo}:</span>
-                                <span style="color: ${colorBorde};">$${subtotalMetodo.toFixed(2)}</span>
+                                <span style="color: ${colorBorde};">$${formatearMonto(subtotalMetodo)}</span>
                             </div>
                         `;
                                     }
